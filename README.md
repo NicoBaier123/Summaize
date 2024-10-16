@@ -1,4 +1,4 @@
-# Summ<span style="color: #00ffff;">AI</span>ze - Web Frontend
+# Summ<span style="color: #00ffff;">AI</span>ze - Web Frontend and Backend
 
 ## Developer set up
 
