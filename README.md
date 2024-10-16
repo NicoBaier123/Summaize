@@ -2,7 +2,7 @@
 
 ## Developer set up
 
-To set up the SummAIze Web Frontend project, follow these steps:
+To set up the SummAIze Web project, follow these steps:
 
 1. Clone the repository:
 
