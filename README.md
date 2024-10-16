@@ -1,5 +1,7 @@
 # Summ<span style="color: #00ffff;">AI</span>ze - Web Frontend and Backend
 
+Please use Node v22
+
 ## Developer set up
 
 To set up the SummAIze Web project, follow these steps:
@@ -7,7 +9,7 @@ To set up the SummAIze Web project, follow these steps:
 1. Clone the repository:
 
    ```bash
-   git clone <repository_url>
+   git clone https://github.com/okh-mzny/summaize-web.git
    ```
 
 2. Install the project dependencies:
