@@ -3,9 +3,10 @@
     <div class="container-fluid d-flex align-items-center justify-content-between">
       <!-- Linke Seite mit den Links -->
       <div class="d-flex align-items-center">
-        <router-link class="navbar-brand me-2" to="/">Logo</router-link>
-        <router-link class="nav-link text-white" to="/about">About</router-link>
-        <router-link class="nav-link text-white" to="/admin">Admin</router-link>
+        <router-link class="navbar-brand nav-item" to="/">Logo</router-link>
+        <router-link class="nav-link nav-item" to="/about">About</router-link>
+        <router-link class="nav-link nav-item" to="/admin">Admin</router-link>
+
       </div>
       <!-- Icon auf der rechten Seite -->
       <i class="bi bi-person-circle text-white" v-b-tooltip.hover title="Hello World"></i>
@@ -26,15 +27,24 @@ export default {
   align-items: center; /* Stellt sicher, dass die Links vertikal zentriert sind */
   justify-content: space-between; /* Nutzt den verfügbaren Platz optimal */
   margin-right: 10px;
+  margin-left: 10px;
   padding-left: 10px; /* Geringfügiges Padding links */
   padding-right: 10px; /* Gleiches Padding rechts für Symmetrie */
 }
 .navbar-brand, .nav-link {
-  margin-right: 20px; /* Erhöhter Abstand zwischen den Links */
+  margin-right: 10px; /* Erhöhter Abstand zwischen den Links */
   padding: 0; /* Entfernt das Padding, um den Abstand zu minimieren */
   font-size: 1.25rem; /* Gleiche Textgröße für beide Links */
   color: white; /* Gleiche Textfarbe für beide Links */
 }
+.nav-item {
+  margin-right: 40px; /* Setzen eines größeren Abstands zwischen den Links */
+}
+
+.nav-item:last-child {
+  margin-right: 0; /* Entfernt den Abstand nach dem letzten Link */
+}
+
 .bi-person-circle {
   font-size: 32px; /* Vergrößert das Icon */
 }
