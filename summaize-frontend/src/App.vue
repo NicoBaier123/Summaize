@@ -1,16 +1,31 @@
-<script setup>
-import { RouterView } from 'vue-router'
-import NavBar from './components/NavBar.vue'
-</script>
-
 <template>
-  <header>
-    <div class="wrapper">
-      <NavBar />
-    </div>
-  </header>
-
-  <RouterView />
+  <div id="app">
+    <NavBar />
+    <RouterView class="router-view" />
+  </div>
 </template>
 
-<style scoped></style>
+<script>
+import NavBar from './components/NavBar.vue'
+
+export default {
+  name: 'App',
+  components: {
+    NavBar
+  }
+}
+</script>
+
+<style>
+#app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.router-view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+</style>

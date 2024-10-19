@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint . --fix",
-    "format": "prettier --write src/"
+    "format": "prettier --write src/",
+    "serve": "vue-cli-service serve"
   },
   "dependencies": {
     "vue": "^3.5.11",
@@ -18,6 +19,7 @@
     "@bootstrap-vue-next/nuxt": "^0.25.2",
     "@eslint/js": "^9.12.0",
     "@vitejs/plugin-vue": "^5.1.4",
+    "@vue/cli-service": "^5.0.8",
     "@vue/eslint-config-prettier": "^10.0.0",
     "bootstrap": "^5.3.3",
     "bootstrap-vue-next": "^0.25.2",
