@@ -1,6 +1,6 @@
 <template>
   <nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <router-link class="navbar-brand" to="/">Logo</router-link>
+    <router-link class="navbar-brand" to="/">Pogo</router-link>
     <button
       class="navbar-toggler"
       type="button"

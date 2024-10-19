@@ -1,14 +1,18 @@
 <template>
   <div class="main-view">
-    <h1 class="display-4">Welcome to the Main View!</h1>
-    <p class="lead">This is the main page of your application.</p>
-    <button class="btn btn-primary">Click me</button>
+    <h1 class="display-4">Welcome to SummAIze</h1>
+    <DragAndDrop />
   </div>
 </template>
 
 <script>
+import DragAndDrop from '@/components/DragAndDrop.vue';
+
 export default {
   name: 'MainView',
+  components: {
+    DragAndDrop
+  }
 }
 </script>
 
