@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "dependencies": {
+    "bootstrap": "^5.3.3",
+    "bootstrap-icons": "^1.11.3",
     "express": "^4.21.1",
+    "jquery": "^3.7.1",
     "summaize-frontend": "file:./summaize-frontend"
   },
   "scripts": {
