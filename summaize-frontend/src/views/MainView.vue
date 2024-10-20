@@ -12,13 +12,11 @@
 
 <script>
 import DisplayCard from '@/components/DisplayCard.vue';
-import Galerie from '@/components/Galerie.vue';
 
 export default {
   name: 'MainView',
   components: {
-    DisplayCard,
-    Galerie
+    DisplayCard
   }
 }
 </script>
@@ -48,9 +46,5 @@ h1 {
   overflow-y: auto;
 }
 
-.galerie-sidebar {
-  width: 250px;
-  overflow-y: auto;
-  background-color: #f8f9fa;
-}
+
 </style>
