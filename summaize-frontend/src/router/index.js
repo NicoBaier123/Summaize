@@ -27,8 +27,13 @@ const router = createRouter({
     {
       path: '/admin',
       name: 'admin',
-      component: () => import('../views/AdminView.vue')
-    }
+      component: () => import('../views/AdminView.vue'),
+    },
+    {
+      path: '/card-set/:id',
+      name: 'DisplayCard',
+      component: DisplayCardView,
+    },
   ],
 })
 
