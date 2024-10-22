@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 import DisplayCardView from '../views/DisplayCardView.vue'
 import DragAndDropView from '@/views/DragAndDropView.vue'
+import MainView from '@/views/MainView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -9,7 +10,7 @@ const router = createRouter({
     {
       path: '/',
       name: 'home',
-      component: DisplayCardView,
+      component: MainView,
     },
     {
       path: '/newSet',

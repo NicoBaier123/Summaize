@@ -21,7 +21,7 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, watch } from 'vue' //onMounted,npm
 import { useRoute } from 'vue-router'
 import DisplayCard from '../components/DisplayCard.vue'
 import DisplayCardNav from '../components/DisplayCardNav.vue'
