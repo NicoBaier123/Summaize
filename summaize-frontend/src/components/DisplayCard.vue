@@ -39,18 +39,20 @@ export default {
 
 <style scoped>
 .card {
-  width: 300px;
-  height: 200px;
+  width: min(80vw, 800px);
+  height: 100%; /* Statt der festen Höhe */
   perspective: 1000px;
   cursor: pointer;
+  margin: 0 auto;
 }
 
 .card-inner {
   position: relative;
   width: 100%;
   height: 100%;
-  transition: transform 0.6s;
+  transition: transform 0.8s;
   transform-style: preserve-3d;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .is-flipped {
@@ -65,18 +67,22 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  border: 1px solid #ccc;
-  border-radius: 10px;
-  padding: 20px;
+  border: none;
+  border-radius: 15px;
+  padding: 30px;
   box-sizing: border-box;
+  font-size: 1.2rem;
+  line-height: 1.6;
 }
 
 .card-front {
-  background-color: #f8f9fa;
+  background-color: #ffffff;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.05);
 }
 
 .card-back {
-  background-color: #e9ecef;
+  background-color: #f8f9fa;
   transform: rotateY(180deg);
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.05);
 }
 </style>
