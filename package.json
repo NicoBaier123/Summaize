@@ -3,16 +3,26 @@
   "version": "1.0.0",
   "private": true,
   "dependencies": {
+    "bootstrap": "^5.3.3",
+    "bootstrap-icons": "^1.11.3",
+    "cors": "^2.8.5",
     "express": "^4.21.1",
-    "summaize-frontend": "file:./summaize-frontend"
+    "jquery": "^3.7.1",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.7",
+    "summaize-frontend": "file:./summaize-frontend",
+    "summaize-backend": "file:./summaize-backend"
   },
   "scripts": {
-    "full": "cd summaize-frontend && npm run format && npm run lint && npm run build && cd .. && node server.js",
-    "fdev": "cd summaize-frontend && npm run dev"
+    "start:frontend": "cd summaize-frontend && npm run dev",
+    "start:backend": "cd summaize-backend && npm start",
+    "start": "concurrently \"npm run start:frontend\" \"npm run start:backend\"",
+    "install:all": "npm install && cd summaize-frontend && npm install && cd ../summaize-backend && npm install"
   },
   "devDependencies": {
     "@eslint/js": "^9.12.0",
     "@vue/eslint-config-prettier": "^10.0.0",
+    "concurrently": "^9.0.1",
     "eslint": "^9.12.0",
     "prettier": "^3.3.3",
     "vite": "^5.4.8"
