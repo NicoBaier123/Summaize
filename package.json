@@ -10,11 +10,10 @@
     "jquery": "^3.7.1",
     "sqlite": "^5.1.1",
     "sqlite3": "^5.1.7",
-    "summaize-frontend": "file:./summaize-frontend"
+    "summaize-frontend": "file:./summaize-frontend",
+    "summaize-backend": "file:./summaize-backend"
   },
   "scripts": {
-    "full": "cd summaize-frontend && npm run format && npm run lint && npm run build && cd .. && node server.js",
-    "fdev": "cd summaize-frontend && npm run dev",
     "start:frontend": "cd summaize-frontend && npm run dev",
     "start:backend": "cd summaize-backend && npm start",
     "start": "concurrently \"npm run start:frontend\" \"npm run start:backend\"",

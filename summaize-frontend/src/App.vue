@@ -2,43 +2,54 @@
   <div id="app">
     <NavBar class="navbar" />
     <div class="content-wrapper">
-      <RouterView class="router-view" :class="{ 'sidebar-open': isSidebarOpen }" />
-      <Galerie class="galerie-sidebar" :class="{ 'open': isSidebarOpen }" />
-      <button @click="toggleSidebar" class="sidebar-toggle btn btn-light" :class="{ 'open': isSidebarOpen }">
-        <i class="bi" :class="isSidebarOpen ? 'bi-chevron-right' : 'bi-chevron-left'"></i>
+      <RouterView
+        class="router-view"
+        :class="{ 'sidebar-open': isSidebarOpen }"
+      />
+      <Galerie class="galerie-sidebar" :class="{ open: isSidebarOpen }" />
+      <button
+        @click="toggleSidebar"
+        class="sidebar-toggle btn btn-light"
+        :class="{ open: isSidebarOpen }"
+      >
+        <i
+          class="bi"
+          :class="isSidebarOpen ? 'bi-chevron-right' : 'bi-chevron-left'"
+        ></i>
       </button>
     </div>
   </div>
 </template>
 
 <script>
-import { ref } from 'vue';
-import NavBar from './components/NavBar.vue';
-import Galerie from '@/components/Galerie.vue';
+import { ref } from 'vue'
+import NavBar from './components/NavBar.vue'
+import Galerie from '@/components/Galerie.vue'
 
 export default {
   name: 'App',
   components: {
     NavBar,
-    Galerie
+    Galerie,
   },
   setup() {
-    const isSidebarOpen = ref(true);
+    const isSidebarOpen = ref(true)
 
     const toggleSidebar = () => {
-      isSidebarOpen.value = !isSidebarOpen.value;
-    };
+      isSidebarOpen.value = !isSidebarOpen.value
+    }
 
     return {
       isSidebarOpen,
-      toggleSidebar
-    };
-  }
+      toggleSidebar,
+    }
+  },
 }
 </script>
 
 <style>
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   height: 100%;
@@ -98,8 +109,10 @@ html, body {
   border-radius: 4px 0 0 4px;
   padding: 10px 5px;
   cursor: pointer;
-  transition: right 0.3s ease, background-color 0.3s ease;
-  box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+  transition:
+    right 0.3s ease,
+    background-color 0.3s ease;
+  box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
 }
 
 .sidebar-toggle:hover {
@@ -111,6 +124,6 @@ html, body {
 }
 
 .sidebar-toggle .bi {
-  font-size: 1.0rem;
+  font-size: 1rem;
 }
 </style>

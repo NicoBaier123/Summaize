@@ -1,15 +1,23 @@
 <template>
-  <nav class="navbar navbar-expand bg-dark border-bottom border-body" data-bs-theme="dark">
-    <div class="container-fluid d-flex align-items-center justify-content-between">
+  <nav
+    class="navbar navbar-expand bg-dark border-bottom border-body"
+    data-bs-theme="dark"
+  >
+    <div
+      class="container-fluid d-flex align-items-center justify-content-between"
+    >
       <!-- Linke Seite mit den Links -->
       <div class="d-flex align-items-center">
         <router-link class="navbar-brand nav-item" to="/">Logo</router-link>
         <router-link class="nav-link nav-item" to="/about">About</router-link>
         <router-link class="nav-link nav-item" to="/admin">Admin</router-link>
-
       </div>
       <!-- Icon auf der rechten Seite -->
-      <i class="bi bi-person-circle text-white" v-b-tooltip.hover title="Hello World"></i>
+      <i
+        class="bi bi-person-circle text-white"
+        v-b-tooltip.hover
+        title="Hello World"
+      ></i>
     </div>
   </nav>
 </template>
@@ -31,7 +39,8 @@ export default {
   padding-left: 10px; /* Geringfügiges Padding links */
   padding-right: 10px; /* Gleiches Padding rechts für Symmetrie */
 }
-.navbar-brand, .nav-link {
+.navbar-brand,
+.nav-link {
   margin-right: 10px; /* Erhöhter Abstand zwischen den Links */
   padding: 0; /* Entfernt das Padding, um den Abstand zu minimieren */
   font-size: 1.25rem; /* Gleiche Textgröße für beide Links */
@@ -57,9 +66,8 @@ export default {
 }
 
 /* Optional: Anpassung der Pfeilfarbe */
-.tooltip.bs-tooltip-auto[x-placement^=top] .arrow::before,
+.tooltip.bs-tooltip-auto[x-placement^='top'] .arrow::before,
 .tooltip.bs-tooltip-top .arrow::before {
   border-top-color: #555; /* Pfeilfarbe an den Hintergrund anpassen */
 }
-
 </style>
