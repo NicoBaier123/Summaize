@@ -40,10 +40,12 @@
     </div>
 
     <div class="scroll-container">
+      <!-- Add New Button -->
       <div class="preview-tile add-new" @click="showModal">
         <span class="plus-icon">+</span>
       </div>
 
+      <!-- Card Set Previews -->
       <div v-for="set in sortedCardSets" :key="set.id" class="preview-tile">
         <div class="edit-icon" @click.stop="editSet(set.id)">
           <i class="fas fa-pen"></i>
@@ -123,6 +125,7 @@ export default {
       closeModal()
       router.push({ name: 'newSet' })
     }
+
     const createNewSet = async () => {
       if (!newSetTitle.value.trim()) return
 
@@ -133,24 +136,18 @@ export default {
             'Content-Type': 'application/json',
             Accept: 'application/json',
           },
-          credentials: 'include', // Wichtig für CORS
+          credentials: 'include',
           body: JSON.stringify({
             title: newSetTitle.value.trim(),
           }),
         })
 
-        console.log('Response status:', response.status)
-
         if (!response.ok) {
           const errorText = await response.text()
-          console.error('Error response:', errorText)
           throw new Error(`HTTP error! status: ${response.status}`)
         }
 
         const newSet = await response.json()
-        console.log('Successfully created new set:', newSet)
-
-        // Aktualisiere die lokale Liste der Sets
         cardSets.value = [...cardSets.value, newSet]
 
         closeModal()
@@ -210,6 +207,39 @@ export default {
   border-radius: 4px;
   overflow: hidden;
   position: relative;
+  background-color: #f8f9fa;
+}
+
+.tile-content {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.preview-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.set-title {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  padding: 8px;
+  margin: 0;
+  font-size: 0.8rem;
+  text-align: center;
+  z-index: 1;
 }
 
 .edit-icon {
@@ -232,25 +262,6 @@ export default {
 .edit-icon:hover {
   background-color: #fff;
   transform: scale(1.1);
-}
-
-.preview-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.set-title {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  color: white;
-  padding: 5px;
-  margin: 0;
-  font-size: 0.8rem;
-  text-align: center;
 }
 
 .add-new {
