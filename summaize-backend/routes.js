@@ -1,6 +1,9 @@
 const express = require("express");
 const router = express.Router();
 
+// API Subsystems
+const auth = require("auto-load")("./api/auth");
+
 module.exports = (db) => {
   // Bestehende Route zum Abrufen aller Kartensets eines Benutzers
   router.get("/users/:userId/card-sets", async (req, res) => {
@@ -107,5 +110,16 @@ module.exports = (db) => {
     }
   });
 
+  // ...
+
+  // POST route for user login
+  router.post("/auth/login", async (req, res) => {
+    auth.login(req, res, db);
+  });
+
+  // POST route for user registration
+  router.post("/auth/register", async (req, res) => {
+    auth.register(req, res, db);
+  });
   return router;
 };
