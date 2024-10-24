@@ -11,22 +11,22 @@ export default defineConfig({
     },
   },
   server: {
-    port: 5173, // Explizit den Port setzen
-    open: true, // Öffnet automatisch den Browser beim Start
+    port: 5173,
+    open: true,
     proxy: {
       '/api': {
         target: 'http://localhost:3000',
         changeOrigin: true,
         secure: false,
-        // Entfernen Sie die rewrite-Zeile
+        ws: true,
       },
     },
   },
   build: {
-    outDir: 'dist', // Setzt das Ausgabeverzeichnis für den Build
-    assetsDir: 'assets', // Setzt das Verzeichnis für Assets im Build
+    outDir: 'dist',
+    assetsDir: 'assets',
   },
   css: {
-    devSourcemap: true, // Aktiviert Sourcemaps für CSS im Entwicklungsmodus
+    devSourcemap: true,
   },
 })

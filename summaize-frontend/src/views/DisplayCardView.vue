@@ -2,6 +2,9 @@
   <div class="display-card-view">
     <div class="content-wrapper">
       <h1 class="title">{{ cardSet?.title }}</h1>
+      <button class="edit-button" @click="goToEdit" title="Bearbeiten">
+        <i class="fas fa-cog"></i>
+      </button>
       <div v-if="currentCard" class="card-container">
         <DisplayCard :card="currentCard" ref="displayCard" />
         <DisplayCardNav

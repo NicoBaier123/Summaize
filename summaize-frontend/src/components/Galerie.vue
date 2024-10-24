@@ -1,115 +1,188 @@
 <template>
   <div class="galerie-sidebar">
+    <!-- Modal Overlay für neue Set-Erstellung -->
+    <div v-if="showCreateModal" class="modal-overlay" @click="closeModal">
+      <div class="modal-content" @click.stop>
+        <h2>Neues Karteikartenset erstellen</h2>
+        <div class="modal-buttons">
+          <button class="modal-button pdf-button" @click="createFromPDF">
+            <i class="fas fa-file-pdf"></i>
+            PDF importieren
+          </button>
+          <button class="modal-button new-button" @click="showTitleInput">
+            <i class="fas fa-plus"></i>
+            Neues Set erstellen
+          </button>
+        </div>
+        <!-- Title Input Form -->
+        <div v-if="showTitlePrompt" class="title-input-container">
+          <input
+            v-model="newSetTitle"
+            type="text"
+            placeholder="Titel des Sets eingeben"
+            class="title-input"
+            @keyup.enter="createNewSet"
+          />
+          <div class="input-buttons">
+            <button
+              class="create-button"
+              @click="createNewSet"
+              :disabled="!newSetTitle.trim()"
+            >
+              Erstellen
+            </button>
+            <button class="cancel-button" @click="cancelTitleInput">
+              Abbrechen
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="scroll-container">
-      <!--div mit einer Plus-Icon, welches ein neues Set erstellt, soll ganz oben sein-->
-      <div class="preview-tile add-new" @click="goToCreateNew">
+      <div class="preview-tile add-new" @click="showModal">
         <span class="plus-icon">+</span>
       </div>
-      <!-- v-for loop to display card sets
-        :key="set.id" setzt eine Keyvariabel mit der id des Sets
-        @click="loadSet(set.id)" Nach Click wird das Set an hand der ID geladen-->
-      <div
-        v-for="set in sortedCardSets"
-        :key="set.id"
-        class="preview-tile"
-        @click="loadSet(set.id)"
-      >
-        <!--setzt die src (source) des Vorschaubildes die als Attribut hinterlegte Image-URL
-            Auch die Alt Beschreibung soll dem Set entnommen werden -->
-        <img
-          :src="set.preview_image_url"
-          :alt="set.title"
-          class="preview-image"
-        />
-        <!--setzt den Titel des Sets, aus einem Attribut des Sets-->
-        <p class="set-title">{{ set.title }}</p>
+
+      <div v-for="set in sortedCardSets" :key="set.id" class="preview-tile">
+        <div class="edit-icon" @click.stop="editSet(set.id)">
+          <i class="fas fa-pen"></i>
+        </div>
+        <div class="tile-content" @click="loadSet(set.id)">
+          <img
+            :src="set.preview_image_url || '/placeholder-image.jpg'"
+            :alt="set.title"
+            class="preview-image"
+          />
+          <p class="set-title">{{ set.title }}</p>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-// Importieren der benötigten Funktionen aus Vue und Vue Router
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 export default {
-  // Der Name der Komponente, wichtig für Debugging und DevTools
   name: 'GalerieSidebar',
 
-  // Die setup()-Funktion ist der Einstiegspunkt für die Composition API in Vue 3
   setup() {
-    // useRouter() gibt das Router-Objekt zurück, das Methoden für die programmatische Navigation bereitstellt.
-    // Mit diesem Objekt können wir zwischen verschiedenen Routen (Ansichten) in unserer Anwendung navigieren,
-    // ohne dass wir die URLs manuell manipulieren müssen. Es ermöglicht uns, Funktionen wie router.push()
-    // zu verwenden, um den Benutzer zu verschiedenen Teilen der Anwendung zu leiten.
     const router = useRouter()
-
-    // Erstellung einer reaktiven Referenz für die Kartensätze
-    // ref() macht den Wert reaktiv, sodass Vue Änderungen erkennen und darauf reagieren kann
     const cardSets = ref([])
+    const showCreateModal = ref(false)
+    const showTitlePrompt = ref(false)
+    const newSetTitle = ref('')
+    const userId = 1
 
-    // Berechnung einer sortierten Version der Kartensätze
-    // computed() erstellt einen abgeleiteten Wert, der sich automatisch aktualisiert, wenn sich cardSets ändert
     const sortedCardSets = computed(() => {
-      // Sortieren der Kartensätze nach dem Aktualisierungsdatum (neueste zuerst)
-      // [...cardSets.value] erstellt eine Kopie des Arrays, um das Original nicht zu verändern
       return [...cardSets.value].sort(
         (a, b) => new Date(b.updated_at) - new Date(a.updated_at),
       )
     })
 
-    // Asynchrone Funktion zum Laden der Kartensätze von der Backend-API
     const loadCardSets = async () => {
       try {
-        const userId = 1
-        console.log('Fetching card sets for user:', userId)
-
-        const response = await fetch(`/api/users/${userId}/card-sets`, {
-          headers: {
-            // Header hier...
-          },
-        })
-
-        console.log('Response status:', response.status)
-        console.log('Response headers:', response.headers)
-
+        const response = await fetch(`/api/users/${userId}/card-sets`)
         if (!response.ok) {
           const errorText = await response.text()
-          console.error('Error response:', errorText)
           throw new Error(
             `HTTP error! status: ${response.status}, message: ${errorText}`,
           )
         }
-
         const data = await response.json()
-        console.log('Received data:', data)
         cardSets.value = data
       } catch (error) {
         console.error('Error loading card sets:', error)
       }
     }
 
-    // Funktion zum Laden eines spezifischen Kartensatzes
-    // Navigiert zur DisplayCard-Ansicht mit der ID des ausgewählten Satzes
+    const showModal = () => {
+      showCreateModal.value = true
+      showTitlePrompt.value = false
+      newSetTitle.value = ''
+    }
+
+    const closeModal = () => {
+      showCreateModal.value = false
+      showTitlePrompt.value = false
+      newSetTitle.value = ''
+    }
+
+    const showTitleInput = () => {
+      showTitlePrompt.value = true
+    }
+
+    const cancelTitleInput = () => {
+      showTitlePrompt.value = false
+      newSetTitle.value = ''
+    }
+
+    const createFromPDF = () => {
+      closeModal()
+      router.push({ name: 'newSet' })
+    }
+    const createNewSet = async () => {
+      if (!newSetTitle.value.trim()) return
+
+      try {
+        const response = await fetch(`/api/users/${userId}/card-sets`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+          credentials: 'include', // Wichtig für CORS
+          body: JSON.stringify({
+            title: newSetTitle.value.trim(),
+          }),
+        })
+
+        console.log('Response status:', response.status)
+
+        if (!response.ok) {
+          const errorText = await response.text()
+          console.error('Error response:', errorText)
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+
+        const newSet = await response.json()
+        console.log('Successfully created new set:', newSet)
+
+        // Aktualisiere die lokale Liste der Sets
+        cardSets.value = [...cardSets.value, newSet]
+
+        closeModal()
+        router.push({ name: 'EditCardSet', params: { id: newSet.id } })
+      } catch (error) {
+        console.error('Error creating new set:', error)
+      }
+    }
+
     const loadSet = setId => {
       router.push({ name: 'DisplayCard', params: { id: setId } })
     }
 
-    // Funktion zur Navigation zur Erstellungsansicht für neue Kartensätze
-    const goToCreateNew = () => {
-      router.push({ name: 'newSet' })
+    const editSet = setId => {
+      router.push({ name: 'EditCardSet', params: { id: setId } })
     }
 
-    // onMounted-Hook: Wird aufgerufen, wenn die Komponente in den DOM eingehängt wird
-    // Hier wird die loadCardSets-Funktion aufgerufen, um die Daten initial zu laden
     onMounted(loadCardSets)
 
-    // Rückgabe der Werte und Funktionen, die im Template verwendet werden sollen
     return {
       sortedCardSets,
+      showCreateModal,
+      showTitlePrompt,
+      newSetTitle,
       loadSet,
-      goToCreateNew,
+      editSet,
+      showModal,
+      closeModal,
+      createFromPDF,
+      showTitleInput,
+      cancelTitleInput,
+      createNewSet,
     }
   },
 }
@@ -139,6 +212,28 @@ export default {
   position: relative;
 }
 
+.edit-icon {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.edit-icon:hover {
+  background-color: #fff;
+  transform: scale(1.1);
+}
+
 .preview-image {
   width: 100%;
   height: 100%;
@@ -163,10 +258,129 @@ export default {
   justify-content: center;
   align-items: center;
   background-color: #e9ecef;
+  transition: background-color 0.3s ease;
+}
+
+.add-new:hover {
+  background-color: #dee2e6;
 }
 
 .plus-icon {
   font-size: 2rem;
   color: #6c757d;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 24px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.modal-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.modal-button {
+  padding: 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.pdf-button {
+  background-color: #e9ecef;
+  color: #495057;
+}
+
+.new-button {
+  background-color: #198754;
+  color: white;
+}
+
+.pdf-button:hover {
+  background-color: #dee2e6;
+}
+
+.new-button:hover {
+  background-color: #157347;
+}
+
+.title-input-container {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #dee2e6;
+}
+
+.title-input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  margin-bottom: 12px;
+  font-size: 1rem;
+}
+
+.input-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.create-button,
+.cancel-button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.create-button {
+  background-color: #0d6efd;
+  color: white;
+}
+
+.create-button:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+.cancel-button {
+  background-color: #e9ecef;
+  color: #495057;
+}
+
+.create-button:not(:disabled):hover {
+  background-color: #0b5ed7;
+}
+
+.cancel-button:hover {
+  background-color: #dee2e6;
 }
 </style>
