@@ -262,5 +262,83 @@ module.exports = (db) => {
     }
   });
 
+  router.put("/users/:userId/card-sets/:id", async (req, res) => {
+    const { userId, id } = req.params;
+    const { title, user_id } = req.body;
+
+    console.log("Update request received:", {
+      params: { userId, id },
+      body: { title, user_id },
+    });
+
+    try {
+      // Eingabevalidierung
+      if (!title) {
+        console.log("Title validation failed");
+        return res.status(400).json({
+          error: "Title is required",
+          details: "The title field cannot be empty",
+        });
+      }
+
+      if (!id || !userId) {
+        console.log("ID validation failed");
+        return res.status(400).json({
+          error: "Invalid parameters",
+          details: "Both userId and card set ID are required",
+        });
+      }
+
+      // Überprüfen Sie, ob das Set existiert
+      const existingSet = await db.get(
+        "SELECT * FROM card_sets WHERE id = ? AND user_id = ?",
+        [id, userId],
+      );
+
+      console.log("Existing set:", existingSet);
+
+      if (!existingSet) {
+        console.log("Card set not found:", { id, userId });
+        return res.status(404).json({
+          error: "Card set not found",
+          details:
+            "The requested card set does not exist or you don't have access",
+        });
+      }
+
+      // Aktualisieren Sie den Titel
+      await db.run(
+        `UPDATE card_sets 
+         SET title = ?, 
+             updated_at = DATETIME('now')
+         WHERE id = ? AND user_id = ?`,
+        [title, id, userId],
+      );
+
+      // Holen Sie das aktualisierte Set
+      const updatedSet = await db.get(
+        `SELECT id, title, user_id, created_at, updated_at 
+         FROM card_sets 
+         WHERE id = ?`,
+        [id],
+      );
+
+      console.log("Updated set:", updatedSet);
+
+      if (!updatedSet) {
+        throw new Error("Failed to fetch updated card set");
+      }
+
+      res.json(updatedSet);
+    } catch (error) {
+      console.error("Database error:", error);
+      res.status(500).json({
+        error: "Database error",
+        details: error.message,
+        stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
+      });
+    }
+  });
+
   return router;
 };

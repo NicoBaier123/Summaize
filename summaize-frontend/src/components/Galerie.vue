@@ -89,14 +89,16 @@ export default {
         const response = await fetch(`/api/users/${userId}/card-sets`)
         if (!response.ok) {
           const errorText = await response.text()
-          throw new Error(
-            `HTTP error! status: ${response.status}, message: ${errorText}`,
-          )
+          const errorMessage = `HTTP error! status: ${response.status}, message: ${errorText}`
+          console.error(errorMessage)
+          throw new Error(errorMessage)
         }
         const data = await response.json()
         cardSets.value = data
       } catch (error) {
         console.error('Error loading card sets:', error)
+        // Optional: Hier können Sie einen Error-State setzen oder dem Benutzer eine Fehlermeldung anzeigen
+        // errorState.value = error.message
       }
     }
 
@@ -143,8 +145,12 @@ export default {
         })
 
         if (!response.ok) {
-          const errorText = await response.text()
-          throw new Error(`HTTP error! status: ${response.status}`)
+          const errorData = await response.text()
+          console.error(
+            `HTTP error! status: ${response.status}, message:`,
+            errorData,
+          )
+          throw new Error('Fehler beim Erstellen des Sets')
         }
 
         const newSet = await response.json()
@@ -154,6 +160,8 @@ export default {
         router.push({ name: 'EditCardSet', params: { id: newSet.id } })
       } catch (error) {
         console.error('Error creating new set:', error)
+        // Optional: Fehlerbehandlung für den Benutzer
+        // errorMessage.value = 'Das Set konnte nicht erstellt werden. Bitte versuchen Sie es erneut.'
       }
     }
 
