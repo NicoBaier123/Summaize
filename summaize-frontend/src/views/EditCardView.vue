@@ -12,6 +12,7 @@
       <div class="editor-header">
         <div class="title-wrapper">
           <EditTitle
+            v-if="cardSet"
             v-model="cardSetTitle"
             :card-set-id="cardSetId"
             :user-id="userId"
@@ -27,7 +28,10 @@
         </button>
       </div>
 
+      <div v-if="loading" class="loading-state">Lade Kartenset...</div>
+
       <CardEditor
+        v-else-if="currentCard"
         :card="currentCard"
         :edited-card="editedCard"
         :editing-front="editingFront"
@@ -35,13 +39,18 @@
         @update:edited-card="updateEditedCard"
         @toggle-edit="toggleEdit"
       />
+
+      <div v-else-if="cards.length === 0" class="empty-state">
+        Keine Karten vorhanden. Klicken Sie auf "+" um eine neue Karte
+        hinzuzufügen.
+      </div>
     </div>
   </div>
 </template>
 
 <script>
-import { ref, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, computed, watch, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import CardsSidebar from '../components/CardsSidebar.vue'
 import CardEditor from '../components/CardEditor.vue'
 import EditTitle from '../components/EditTitle.vue'
@@ -55,11 +64,19 @@ export default {
   },
   setup() {
     const route = useRoute()
+    const router = useRouter()
     const userId = 1
-    // Explizit die cardSetId aus den Route-Parametern extrahieren
+    const loading = ref(true)
     const cardSetId = computed(() => route.params.id)
 
     const cardSet = ref(null)
+    const cards = ref([])
+    const currentCard = ref(null)
+    const editedCard = ref({ front_content: '', back_content: '' })
+    const editingFront = ref(false)
+    const editingBack = ref(false)
+    const hasChanges = ref(false)
+
     const cardSetTitle = computed({
       get: () => cardSet.value?.title || '',
       set: newValue => {
@@ -69,36 +86,44 @@ export default {
       },
     })
 
-    const cards = ref([])
-    const currentCard = ref(null)
-    const editedCard = ref({ front_content: '', back_content: '' })
-    const editingFront = ref(false)
-    const editingBack = ref(false)
-    const hasChanges = ref(false)
-
-    const handleError = error => {
-      console.error('Error:', error)
-      // Hier könnte ein Toast oder eine andere Fehleranzeige implementiert werden
-    }
-
+    // Verbesserte fetchCardSet Funktion mit Error Handling
     const fetchCardSet = async () => {
+      loading.value = true
       try {
         const response = await fetch(
           `/api/users/${userId}/card-sets/${cardSetId.value}`,
         )
+
         if (!response.ok) {
-          throw new Error('Failed to fetch card set')
+          throw new Error(`HTTP error! status: ${response.status}`)
         }
+
         const data = await response.json()
-        cardSet.value = data
+        console.log('Received card set data:', data)
+
+        cardSet.value = {
+          id: data.id,
+          title: data.title,
+          preview_image_url: data.preview_image_url,
+        }
+
         cards.value = data.cards || []
-        if (cards.value.length > 0 && !currentCard.value) {
+
+        if (cards.value.length > 0) {
           selectCard(cards.value[0])
         }
       } catch (error) {
         console.error('Error fetching card set:', error)
         handleError('Fehler beim Laden des Kartensets')
+        router.push('/') // Zurück zur Hauptseite bei Fehler
+      } finally {
+        loading.value = false
       }
+    }
+
+    const handleError = error => {
+      console.error('Error:', error)
+      // Implementieren Sie hier Ihre Fehleranzeige
     }
 
     const selectCard = card => {
@@ -202,12 +227,27 @@ export default {
       }
     }
 
+    // Watch für Route-Änderungen
+    watch(
+      () => route.params.id,
+      (newId, oldId) => {
+        if (newId !== oldId) {
+          fetchCardSet()
+        }
+      },
+      { immediate: true },
+    )
+
     // Initial laden
-    fetchCardSet()
+    onMounted(() => {
+      if (cardSetId.value) {
+        fetchCardSet()
+      }
+    })
 
     return {
       cardSet,
-      cardSetId, // Wichtig: Wir geben die cardSetId zurück
+      cardSetId,
       cardSetTitle,
       cards,
       currentCard,
@@ -215,6 +255,7 @@ export default {
       editingFront,
       editingBack,
       hasChanges,
+      loading,
       userId,
       handleError,
       selectCard,
@@ -229,6 +270,16 @@ export default {
 </script>
 
 <style scoped>
+.loading-state,
+.empty-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  color: #6c757d;
+  font-size: 1.1rem;
+}
+
 .edit-card-view {
   display: flex;
   height: 100vh;
