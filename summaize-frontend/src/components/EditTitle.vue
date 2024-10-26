@@ -44,7 +44,7 @@ export default {
     },
   },
   emits: ['update:modelValue'],
-  setup(props, { emit }) {
+  setup(props) {
     const localTitle = ref(props.modelValue)
     const isEditing = ref(false)
     const isSaving = ref(false)
@@ -78,47 +78,33 @@ export default {
       isEditing.value = false
     }
 
+    // In EditTitle.vue
     const saveTitle = async () => {
-      if (!localTitle.value || localTitle.value === props.modelValue) {
-        isEditing.value = false
-        return
-      }
+      console.log('Sending request:', {
+        url: `/api/users/${props.userId}/card-sets/${props.cardSetId}`,
+        title: localTitle.value,
+      })
 
-      isSaving.value = true
-      try {
-        const response = await fetch(
-          `/api/users/${props.userId}/card-sets/${props.cardSetId}`,
-          {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              title: localTitle.value,
-              user_id: props.userId, // Explizit die user_id mitschicken
-            }),
+      const response = await fetch(
+        `/api/users/${props.userId}/card-sets/${props.cardSetId}`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
           },
-        )
+          body: JSON.stringify({ title: localTitle.value.trim() }),
+        },
+      )
 
-        if (!response.ok) {
-          throw new Error('Failed to update title')
-        }
-
-        const contentType = response.headers.get('content-type')
-        if (contentType && contentType.includes('application/json')) {
-          const updatedSet = await response.json()
-          emit('update:modelValue', updatedSet.title)
-        } else {
-          emit('update:modelValue', localTitle.value)
-        }
-
-        isEditing.value = false
-      } catch (error) {
-        console.error('Error saving title:', error)
-        localTitle.value = props.modelValue
-      } finally {
-        isSaving.value = false
+      if (!response.ok) {
+        const error = await response.json()
+        console.error('Error response:', error)
+        throw new Error(error.message || 'Failed to update title')
       }
+
+      const data = await response.json()
+      console.log('Success response:', data)
+      return data
     }
 
     return {

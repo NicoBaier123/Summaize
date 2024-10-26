@@ -5,34 +5,7 @@ const routes = require("./routes");
 
 const app = express();
 
-// Erweiterte Logging Middleware
-app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
-  if (req.method !== "GET") {
-    console.log("Request body:", req.body);
-  }
-
-  // Response Logging
-  const oldJson = res.json;
-  res.json = function (data) {
-    console.log("Response:", data);
-    return oldJson.apply(res, arguments);
-  };
-
-  next();
-});
-
-// Error Handling Middleware
-app.use((err, req, res, next) => {
-  console.error(`${new Date().toISOString()} - Error:`, err);
-  res.status(500).json({
-    error: "Internal Server Error",
-    message: err.message,
-    stack: process.env.NODE_ENV === "development" ? err.stack : undefined,
-  });
-});
-
-// CORS-Konfiguration
+// 1. CORS muss als erstes kommen
 app.use(
   cors({
     origin: ["http://localhost:5173", "http://127.0.0.1:5173"],
@@ -42,10 +15,25 @@ app.use(
   }),
 );
 
-// Body Parser Middleware mit Größenbegrenzung
+// 2. Body Parser MUSS vor dem Logging kommen
 app.use(express.json({ limit: "10mb" }));
 
-// Globaler Request Timeout
+// 3. Logging Middleware
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+  if (req.method !== "GET") {
+    console.log("Request body:", req.body);
+  }
+  // Response Logging
+  const oldJson = res.json;
+  res.json = function (data) {
+    console.log("Response:", data);
+    return oldJson.apply(res, arguments);
+  };
+  next();
+});
+
+// 4. Request Timeout
 app.use((req, res, next) => {
   req.setTimeout(5000, () => {
     console.error(
@@ -73,6 +61,7 @@ async function startServer() {
       next();
     });
 
+    // Routes einbinden
     app.use("/api", routes(db));
 
     // 404 Handler
@@ -83,8 +72,17 @@ async function startServer() {
       res.status(404).json({ error: "Route not found" });
     });
 
-    const PORT = process.env.PORT || 3000;
+    // 5. Error Handling Middleware muss als letztes kommen
+    app.use((err, req, res, next) => {
+      console.error(`${new Date().toISOString()} - Error:`, err);
+      res.status(500).json({
+        error: "Internal Server Error",
+        message: err.message,
+        stack: process.env.NODE_ENV === "development" ? err.stack : undefined,
+      });
+    });
 
+    const PORT = process.env.PORT || 3000;
     const server = app.listen(PORT, () => {
       console.log(
         `${new Date().toISOString()} - Server running on port ${PORT}`,

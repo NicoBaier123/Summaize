@@ -12,11 +12,10 @@
       <div class="editor-header">
         <div class="title-wrapper">
           <EditTitle
-            v-if="cardSet"
             v-model="cardSetTitle"
-            :card-set-id="cardSet.id"
+            :card-set-id="cardSetId"
             :user-id="userId"
-            @update:model-value="updateCardSetTitle"
+            @error="handleError"
           />
         </div>
         <button
@@ -57,6 +56,8 @@ export default {
   setup() {
     const route = useRoute()
     const userId = 1
+    // Explizit die cardSetId aus den Route-Parametern extrahieren
+    const cardSetId = computed(() => route.params.id)
 
     const cardSet = ref(null)
     const cardSetTitle = computed({
@@ -75,16 +76,16 @@ export default {
     const editingBack = ref(false)
     const hasChanges = ref(false)
 
-    const updateCardSetTitle = newTitle => {
-      if (cardSet.value) {
-        cardSet.value.title = newTitle
-      }
+    const handleError = error => {
+      console.error('Error:', error)
+      // Hier könnte ein Toast oder eine andere Fehleranzeige implementiert werden
     }
 
     const fetchCardSet = async () => {
       try {
-        const setId = route.params.id
-        const response = await fetch(`/api/users/${userId}/card-sets/${setId}`)
+        const response = await fetch(
+          `/api/users/${userId}/card-sets/${cardSetId.value}`,
+        )
         if (!response.ok) {
           throw new Error('Failed to fetch card set')
         }
@@ -96,6 +97,7 @@ export default {
         }
       } catch (error) {
         console.error('Error fetching card set:', error)
+        handleError('Fehler beim Laden des Kartensets')
       }
     }
 
@@ -110,7 +112,7 @@ export default {
     const addNewCard = () => {
       const newCard = {
         id: 'temp_' + Date.now(),
-        card_set_id: route.params.id,
+        card_set_id: cardSetId.value,
         front_content: '',
         back_content: '',
       }
@@ -139,6 +141,7 @@ export default {
         }
       } catch (error) {
         console.error('Error deleting card:', error)
+        handleError('Fehler beim Löschen der Karte')
       }
     }
 
@@ -161,7 +164,7 @@ export default {
       try {
         const isNew = String(currentCard.value.id).startsWith('temp_')
         const endpoint = isNew
-          ? `/api/card-sets/${route.params.id}/cards`
+          ? `/api/card-sets/${cardSetId.value}/cards`
           : `/api/cards/${currentCard.value.id}`
 
         const response = await fetch(endpoint, {
@@ -195,6 +198,7 @@ export default {
         editingBack.value = false
       } catch (error) {
         console.error('Error saving card:', error)
+        handleError('Fehler beim Speichern der Karte')
       }
     }
 
@@ -203,6 +207,7 @@ export default {
 
     return {
       cardSet,
+      cardSetId, // Wichtig: Wir geben die cardSetId zurück
       cardSetTitle,
       cards,
       currentCard,
@@ -211,13 +216,13 @@ export default {
       editingBack,
       hasChanges,
       userId,
+      handleError,
       selectCard,
       addNewCard,
       deleteCard,
       toggleEdit,
       updateEditedCard,
       saveChanges,
-      updateCardSetTitle,
     }
   },
 }
