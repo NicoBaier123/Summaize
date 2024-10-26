@@ -262,83 +262,48 @@ module.exports = (db) => {
     }
   });
 
+  // Route zum Aktualisieren eines Kartensets
   router.put("/users/:userId/card-sets/:id", async (req, res) => {
-    const { userId, id } = req.params;
-    const { title, user_id } = req.body;
-
-    console.log("Update request received:", {
-      params: { userId, id },
-      body: { title, user_id },
-    });
-
     try {
-      // Eingabevalidierung
+      const { userId, id } = req.params;
+      const { title, user_id } = req.body;
+
       if (!title) {
-        console.log("Title validation failed");
-        return res.status(400).json({
-          error: "Title is required",
-          details: "The title field cannot be empty",
-        });
+        return res.status(400).json({ error: "Title is required" });
       }
 
-      if (!id || !userId) {
-        console.log("ID validation failed");
-        return res.status(400).json({
-          error: "Invalid parameters",
-          details: "Both userId and card set ID are required",
-        });
-      }
+      const db = req.app.locals.db;
 
-      // Überprüfen Sie, ob das Set existiert
+      // TODO: Später durch echte User-Authentifizierung ersetzen
       const existingSet = await db.get(
         "SELECT * FROM card_sets WHERE id = ? AND user_id = ?",
         [id, userId],
       );
 
-      console.log("Existing set:", existingSet);
-
       if (!existingSet) {
-        console.log("Card set not found:", { id, userId });
-        return res.status(404).json({
-          error: "Card set not found",
-          details:
-            "The requested card set does not exist or you don't have access",
-        });
+        return res
+          .status(404)
+          .json({ error: "Card set not found or access denied" });
       }
 
-      // Aktualisieren Sie den Titel
+      // Aktualisiere den Titel und die user_id
       await db.run(
         `UPDATE card_sets 
-         SET title = ?, 
-             updated_at = DATETIME('now')
-         WHERE id = ? AND user_id = ?`,
-        [title, id, userId],
+       SET title = ?, user_id = ?, updated_at = CURRENT_TIMESTAMP 
+       WHERE id = ?`,
+        [title, user_id, id],
       );
 
-      // Holen Sie das aktualisierte Set
-      const updatedSet = await db.get(
-        `SELECT id, title, user_id, created_at, updated_at 
-         FROM card_sets 
-         WHERE id = ?`,
-        [id],
-      );
-
-      console.log("Updated set:", updatedSet);
-
-      if (!updatedSet) {
-        throw new Error("Failed to fetch updated card set");
-      }
+      // Hole das aktualisierte Set
+      const updatedSet = await db.get(`SELECT * FROM card_sets WHERE id = ?`, [
+        id,
+      ]);
 
       res.json(updatedSet);
     } catch (error) {
-      console.error("Database error:", error);
-      res.status(500).json({
-        error: "Database error",
-        details: error.message,
-        stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
-      });
+      console.error("Error updating card set:", error);
+      res.status(500).json({ error: "Internal server error" });
     }
   });
-
   return router;
 };
