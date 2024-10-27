@@ -17,6 +17,7 @@
             :card-set-id="cardSetId"
             :user-id="userId"
             @error="handleError"
+            @title-updated="handleTitleUpdate"
           />
         </div>
         <button
@@ -49,7 +50,7 @@
 </template>
 
 <script>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, inject } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import CardsSidebar from '../components/CardsSidebar.vue'
 import CardEditor from '../components/CardEditor.vue'
@@ -69,6 +70,9 @@ export default {
     const loading = ref(true)
     const cardSetId = computed(() => route.params.id)
 
+    // Inject der Galerie-Reload Funktion
+    const reloadGallery = inject('reloadGallery')
+
     const cardSet = ref(null)
     const cards = ref([])
     const currentCard = ref(null)
@@ -86,7 +90,6 @@ export default {
       },
     })
 
-    // Verbesserte fetchCardSet Funktion mit Error Handling
     const fetchCardSet = async () => {
       loading.value = true
       try {
@@ -123,7 +126,13 @@ export default {
 
     const handleError = error => {
       console.error('Error:', error)
-      // Implementieren Sie hier Ihre Fehleranzeige
+    }
+
+    // Neue Funktion zum Behandeln des Title-Update Events
+    const handleTitleUpdate = () => {
+      if (reloadGallery) {
+        reloadGallery()
+      }
     }
 
     const selectCard = card => {
@@ -227,7 +236,6 @@ export default {
       }
     }
 
-    // Watch für Route-Änderungen
     watch(
       () => route.params.id,
       (newId, oldId) => {
@@ -238,7 +246,6 @@ export default {
       { immediate: true },
     )
 
-    // Initial laden
     onMounted(() => {
       if (cardSetId.value) {
         fetchCardSet()
@@ -258,6 +265,7 @@ export default {
       loading,
       userId,
       handleError,
+      handleTitleUpdate, // Neue Funktion zum Return hinzugefügt
       selectCard,
       addNewCard,
       deleteCard,

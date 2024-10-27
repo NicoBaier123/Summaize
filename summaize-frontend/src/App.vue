@@ -1,3 +1,4 @@
+// App.vue
 <template>
   <div id="app">
     <NavBar class="navbar" />
@@ -6,8 +7,14 @@
         class="router-view"
         :class="{ 'sidebar-open': isSidebarOpen }"
       />
-      <Galerie class="galerie-sidebar" :class="{ open: isSidebarOpen }" />
+      <Galerie
+        ref="galerieRef"
+        class="galerie-sidebar"
+        :class="{ open: isSidebarOpen }"
+        @modal-state="handleModalState"
+      />
       <button
+        v-show="!isModalOpen"
         @click="toggleSidebar"
         class="sidebar-toggle btn btn-light"
         :class="{ open: isSidebarOpen }"
@@ -22,7 +29,7 @@
 </template>
 
 <script>
-import { ref } from 'vue'
+import { ref, provide } from 'vue'
 import NavBar from './components/NavBar.vue'
 import Galerie from '@/components/Galerie.vue'
 
@@ -34,14 +41,31 @@ export default {
   },
   setup() {
     const isSidebarOpen = ref(true)
+    const galerieRef = ref(null)
+    const isModalOpen = ref(false)
+
+    const handleModalState = state => {
+      isModalOpen.value = state
+    }
 
     const toggleSidebar = () => {
       isSidebarOpen.value = !isSidebarOpen.value
     }
 
+    // Provide die reloadGallery Funktion
+    provide('reloadGallery', () => {
+      console.log('Reload gallery triggered from App.vue')
+      if (galerieRef.value && galerieRef.value.loadCardSets) {
+        galerieRef.value.loadCardSets()
+      }
+    })
+
     return {
       isSidebarOpen,
       toggleSidebar,
+      galerieRef,
+      isModalOpen,
+      handleModalState,
     }
   },
 }
@@ -102,7 +126,7 @@ body {
 
 .sidebar-toggle {
   position: fixed;
-  top: 10vh; /* Positioniert den Button im oberen Viertel der Seite */
+  top: 10vh;
   right: 0;
   z-index: 1001;
   border: none;

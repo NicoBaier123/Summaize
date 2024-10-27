@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 module.exports = (db) => {
-  // Bestehende Route zum Abrufen aller Kartensets eines Benutzers
+  // Alle Kartensets eines Benutzers abrufen
   router.get("/users/:userId/card-sets", async (req, res) => {
     console.log(
       `${new Date().toISOString()} - Fetching card sets for user ${req.params.userId}`,
@@ -33,7 +33,7 @@ module.exports = (db) => {
     }
   });
 
-  // Aktualisierte Route zum Abrufen eines spezifischen Kartensets und seiner Karten
+  // Spezifisches Kartenset und seine Karten abrufen
   router.get("/users/:userId/card-sets/:setId", async (req, res) => {
     console.log(
       `${new Date().toISOString()} - Fetching card set ${req.params.setId} for user ${req.params.userId}`,
@@ -88,122 +88,7 @@ module.exports = (db) => {
     }
   });
 
-  // Neue Route zum Aktualisieren einer Karte
-  router.put("/cards/:id", async (req, res) => {
-    console.log(`${new Date().toISOString()} - Updating card ${req.params.id}`);
-    try {
-      const { id } = req.params;
-      const { front_content, back_content } = req.body;
-
-      const query = `
-        UPDATE cards 
-        SET front_content = ?, 
-            back_content = ?, 
-            updated_at = CURRENT_TIMESTAMP 
-        WHERE id = ?
-      `;
-      console.log(`${new Date().toISOString()} - Executing query: ${query}`);
-
-      const result = await db.run(query, [front_content, back_content, id]);
-
-      if (result.changes === 0) {
-        return res.status(404).json({ error: "Card not found" });
-      }
-
-      const updatedCard = await db.get("SELECT * FROM cards WHERE id = ?", [
-        id,
-      ]);
-
-      console.log(
-        `${new Date().toISOString()} - Updated card:`,
-        JSON.stringify(updatedCard, null, 2),
-      );
-
-      res.json(updatedCard);
-    } catch (error) {
-      console.error(
-        `${new Date().toISOString()} - Error updating card:`,
-        error,
-      );
-      res.status(500).json({
-        error: "An error occurred while updating the card",
-        details: error.message,
-      });
-    }
-  });
-
-  // Neue Route zum Erstellen einer Karte
-  router.post("/card-sets/:setId/cards", async (req, res) => {
-    console.log(
-      `${new Date().toISOString()} - Creating new card for set ${req.params.setId}`,
-    );
-    try {
-      const { setId } = req.params;
-      const { front_content, back_content } = req.body;
-
-      const query = `
-        INSERT INTO cards (card_set_id, front_content, back_content) 
-        VALUES (?, ?, ?)
-      `;
-      console.log(`${new Date().toISOString()} - Executing query: ${query}`);
-
-      const result = await db.run(query, [setId, front_content, back_content]);
-
-      const newCard = await db.get("SELECT * FROM cards WHERE id = ?", [
-        result.lastID,
-      ]);
-
-      console.log(
-        `${new Date().toISOString()} - Created new card:`,
-        JSON.stringify(newCard, null, 2),
-      );
-
-      res.status(201).json(newCard);
-    } catch (error) {
-      console.error(
-        `${new Date().toISOString()} - Error creating card:`,
-        error,
-      );
-      res.status(500).json({
-        error: "An error occurred while creating the card",
-        details: error.message,
-      });
-    }
-  });
-
-  // Neue Route zum Löschen einer Karte
-  router.delete("/cards/:id", async (req, res) => {
-    console.log(`${new Date().toISOString()} - Deleting card ${req.params.id}`);
-    try {
-      const { id } = req.params;
-
-      const query = "DELETE FROM cards WHERE id = ?";
-      console.log(`${new Date().toISOString()} - Executing query: ${query}`);
-
-      const result = await db.run(query, [id]);
-
-      if (result.changes === 0) {
-        return res.status(404).json({ error: "Card not found" });
-      }
-
-      console.log(
-        `${new Date().toISOString()} - Successfully deleted card ${id}`,
-      );
-
-      res.status(204).send();
-    } catch (error) {
-      console.error(
-        `${new Date().toISOString()} - Error deleting card:`,
-        error,
-      );
-      res.status(500).json({
-        error: "An error occurred while deleting the card",
-        details: error.message,
-      });
-    }
-  });
-
-  // Neue Route zum Erstellen eines Kartensets
+  // Kartenset erstellen
   router.post("/users/:userId/card-sets", async (req, res) => {
     const timestamp = new Date().toISOString();
     console.log(
@@ -262,8 +147,7 @@ module.exports = (db) => {
     }
   });
 
-  // Route zum Aktualisieren eines Kartensets
-
+  // Kartenset aktualisieren
   router.put("/users/:userId/card-sets/:id", async (req, res) => {
     const timestamp = new Date().toISOString();
     console.log(`${timestamp} - Update request received`);
@@ -274,7 +158,6 @@ module.exports = (db) => {
       const { userId, id } = req.params;
       const { title } = req.body;
 
-      // Validierung
       if (!title || typeof title !== "string") {
         console.log(`${timestamp} - Invalid title:`, title);
         return res.status(400).json({
@@ -283,12 +166,10 @@ module.exports = (db) => {
         });
       }
 
-      // DB-Verbindung prüfen
       if (!db || typeof db.get !== "function") {
         throw new Error("Database connection not properly initialized");
       }
 
-      // Set existiert und gehört dem User?
       const existingSet = await db.get(
         "SELECT * FROM card_sets WHERE id = ? AND user_id = ?",
         [id, userId],
@@ -302,7 +183,6 @@ module.exports = (db) => {
         });
       }
 
-      // Update durchführen
       console.log(`${timestamp} - Updating title to:`, title.trim());
       const updateResult = await db.run(
         `UPDATE card_sets 
@@ -318,7 +198,6 @@ module.exports = (db) => {
         throw new Error("Update operation did not affect any rows");
       }
 
-      // Aktualisiertes Set abrufen
       const updatedSet = await db.get(
         "SELECT * FROM card_sets WHERE id = ? AND user_id = ?",
         [id, userId],
@@ -340,7 +219,7 @@ module.exports = (db) => {
     }
   });
 
-  // Route zum Löschen eines Kartensets und aller zugehörigen Karten
+  // Kartenset löschen
   router.delete("/users/:userId/card-sets/:setId", async (req, res) => {
     const timestamp = new Date().toISOString();
     console.log(`[DEBUG] ${timestamp} - Delete request received`);
@@ -352,13 +231,11 @@ module.exports = (db) => {
     try {
       const { userId, setId } = req.params;
 
-      // Log the SQL query for debugging
       console.log("[DEBUG] Checking if set exists:", {
         query: "SELECT * FROM card_sets WHERE id = ? AND user_id = ?",
         params: [setId, userId],
       });
 
-      // Überprüfen ob das Set existiert und dem User gehört
       const existingSet = await db.get(
         "SELECT * FROM card_sets WHERE id = ? AND user_id = ?",
         [setId, userId],
@@ -374,12 +251,10 @@ module.exports = (db) => {
         });
       }
 
-      // Begin transaction
       console.log("[DEBUG] Starting transaction");
       await db.run("BEGIN TRANSACTION");
 
       try {
-        // Erst alle Karten des Sets löschen
         console.log("[DEBUG] Deleting cards");
         const deleteCardsResult = await db.run(
           "DELETE FROM cards WHERE card_set_id = ?",
@@ -387,7 +262,6 @@ module.exports = (db) => {
         );
         console.log("[DEBUG] Cards deletion result:", deleteCardsResult);
 
-        // Dann das Set selbst löschen
         console.log("[DEBUG] Deleting set");
         const deleteSetResult = await db.run(
           "DELETE FROM card_sets WHERE id = ? AND user_id = ?",
@@ -416,5 +290,6 @@ module.exports = (db) => {
       }
     }
   });
+
   return router;
 };

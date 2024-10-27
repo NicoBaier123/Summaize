@@ -1,3 +1,4 @@
+// EditTitle.vue
 <template>
   <div class="title-container">
     <input
@@ -24,7 +25,7 @@
 </template>
 
 <script>
-import { ref, watch, nextTick } from 'vue'
+import { ref, watch, nextTick, inject } from 'vue'
 
 export default {
   name: 'EditTitle',
@@ -37,18 +38,18 @@ export default {
       type: [String, Number],
       required: true,
     },
-    // TODO: Später durch Login-Session ersetzen
     userId: {
       type: [String, Number],
       default: 1,
     },
   },
-  emits: ['update:modelValue'],
-  setup(props) {
+  emits: ['update:modelValue', 'error'],
+  setup(props, { emit }) {
     const localTitle = ref(props.modelValue)
     const isEditing = ref(false)
     const isSaving = ref(false)
     const titleInput = ref(null)
+    const reloadGallery = inject('reloadGallery')
 
     watch(
       () => props.modelValue,
@@ -71,40 +72,58 @@ export default {
       if (event.relatedTarget?.classList.contains('confirm-edit-button')) {
         return
       }
-
       if (localTitle.value !== props.modelValue) {
         await saveTitle()
       }
       isEditing.value = false
     }
 
-    // In EditTitle.vue
     const saveTitle = async () => {
-      console.log('Sending request:', {
-        url: `/api/users/${props.userId}/card-sets/${props.cardSetId}`,
-        title: localTitle.value,
-      })
+      isSaving.value = true
+      try {
+        console.log('Sending title update request:', {
+          url: `/api/users/${props.userId}/card-sets/${props.cardSetId}`,
+          title: localTitle.value,
+        })
 
-      const response = await fetch(
-        `/api/users/${props.userId}/card-sets/${props.cardSetId}`,
-        {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
+        const response = await fetch(
+          `/api/users/${props.userId}/card-sets/${props.cardSetId}`,
+          {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ title: localTitle.value.trim() }),
           },
-          body: JSON.stringify({ title: localTitle.value.trim() }),
-        },
-      )
+        )
 
-      if (!response.ok) {
-        const error = await response.json()
-        console.error('Error response:', error)
-        throw new Error(error.message || 'Failed to update title')
+        if (!response.ok) {
+          const error = await response.json()
+          console.error('Error response:', error)
+          throw new Error(error.message || 'Failed to update title')
+        }
+
+        const data = await response.json()
+        console.log('Title update success:', data)
+
+        emit('update:modelValue', localTitle.value.trim())
+        isEditing.value = false
+
+        // Trigger gallery reload
+        console.log('Triggering gallery reload from EditTitle')
+        if (reloadGallery) {
+          reloadGallery()
+        }
+
+        return data
+      } catch (error) {
+        console.error('Save failed:', error)
+        emit('error', error.message)
+        localTitle.value = props.modelValue
+        throw error
+      } finally {
+        isSaving.value = false
       }
-
-      const data = await response.json()
-      console.log('Success response:', data)
-      return data
     }
 
     return {

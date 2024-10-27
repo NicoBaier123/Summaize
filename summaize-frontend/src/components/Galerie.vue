@@ -84,8 +84,9 @@ import { useRouter } from 'vue-router'
 
 export default {
   name: 'GalerieSidebar',
+  emits: ['modal-state'], // Neue emit Deklaration
 
-  setup() {
+  setup(props, { emit }) {
     const router = useRouter()
     const cardSets = ref([])
     const showCreateModal = ref(false)
@@ -102,6 +103,7 @@ export default {
 
     const loadCardSets = async () => {
       try {
+        console.log('Loading card sets...')
         const response = await fetch(`/api/users/${userId}/card-sets`)
         if (!response.ok) {
           const errorText = await response.text()
@@ -110,6 +112,7 @@ export default {
           throw new Error(errorMessage)
         }
         const data = await response.json()
+        console.log('Card sets loaded:', data)
         cardSets.value = data
       } catch (error) {
         console.error('Error loading card sets:', error)
@@ -120,12 +123,14 @@ export default {
       showCreateModal.value = true
       showTitlePrompt.value = false
       newSetTitle.value = ''
+      emit('modal-state', true)
     }
 
     const closeModal = () => {
       showCreateModal.value = false
       showTitlePrompt.value = false
       newSetTitle.value = ''
+      emit('modal-state', false)
     }
 
     const showTitleInput = () => {
@@ -168,7 +173,7 @@ export default {
         }
 
         const newSet = await response.json()
-        cardSets.value = [...cardSets.value, newSet]
+        await loadCardSets() // Reload card sets after creating new one
 
         closeModal()
         router.push({ name: 'EditCardSet', params: { id: newSet.id } })
@@ -178,6 +183,9 @@ export default {
     }
 
     const deleteSet = async setId => {
+      if (!confirm('Möchten Sie dieses Karteikartenset wirklich löschen?'))
+        return
+
       try {
         const response = await fetch(
           `/api/users/${userId}/card-sets/${setId}`,
@@ -201,13 +209,10 @@ export default {
         // Toast anzeigen
         showSuccessToast.value = true
 
-        // Warte kurz, damit der Toast noch sichtbar ist
         setTimeout(() => {
-          // Toast ausblenden
           showSuccessToast.value = false
-          // Seite neu laden
-          window.location.reload()
-        }, 500)
+          loadCardSets() // Reload statt window.location.reload()
+        }, 1000)
       } catch (error) {
         console.error('Error deleting set:', error)
       }
@@ -221,7 +226,10 @@ export default {
       router.push({ name: 'EditCardSet', params: { id: setId } })
     }
 
-    onMounted(loadCardSets)
+    onMounted(() => {
+      console.log('Galerie mounted, loading card sets...')
+      loadCardSets()
+    })
 
     return {
       sortedCardSets,
@@ -238,6 +246,7 @@ export default {
       showTitleInput,
       cancelTitleInput,
       createNewSet,
+      loadCardSets,
     }
   },
 }
@@ -409,7 +418,7 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  z-index: 9999;
 }
 
 .modal-content {
