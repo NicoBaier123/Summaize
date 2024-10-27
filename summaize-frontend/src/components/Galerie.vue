@@ -39,6 +39,18 @@
       </div>
     </div>
 
+    <!-- Success Toast -->
+    <div
+      v-if="showSuccessToast"
+      class="success-toast"
+      @click="showSuccessToast = false"
+    >
+      <div class="toast-content">
+        <i class="fas fa-check-circle"></i>
+        <span>Karteikartenset wurde gelöscht</span>
+      </div>
+    </div>
+
     <div class="scroll-container">
       <!-- Add New Button -->
       <div class="preview-tile add-new" @click="showModal">
@@ -49,6 +61,9 @@
       <div v-for="set in sortedCardSets" :key="set.id" class="preview-tile">
         <div class="edit-icon" @click.stop="editSet(set.id)">
           <i class="fas fa-pen"></i>
+        </div>
+        <div class="delete-icon" @click.stop="deleteSet(set.id)">
+          <i class="fas fa-trash"></i>
         </div>
         <div class="tile-content" @click="loadSet(set.id)">
           <img
@@ -76,6 +91,7 @@ export default {
     const showCreateModal = ref(false)
     const showTitlePrompt = ref(false)
     const newSetTitle = ref('')
+    const showSuccessToast = ref(false)
     const userId = 1
 
     const sortedCardSets = computed(() => {
@@ -97,8 +113,6 @@ export default {
         cardSets.value = data
       } catch (error) {
         console.error('Error loading card sets:', error)
-        // Optional: Hier können Sie einen Error-State setzen oder dem Benutzer eine Fehlermeldung anzeigen
-        // errorState.value = error.message
       }
     }
 
@@ -160,8 +174,42 @@ export default {
         router.push({ name: 'EditCardSet', params: { id: newSet.id } })
       } catch (error) {
         console.error('Error creating new set:', error)
-        // Optional: Fehlerbehandlung für den Benutzer
-        // errorMessage.value = 'Das Set konnte nicht erstellt werden. Bitte versuchen Sie es erneut.'
+      }
+    }
+
+    const deleteSet = async setId => {
+      try {
+        const response = await fetch(
+          `/api/users/${userId}/card-sets/${setId}`,
+          {
+            method: 'DELETE',
+            headers: {
+              Accept: 'application/json',
+              'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+          },
+        )
+
+        if (!response.ok) {
+          throw new Error('Fehler beim Löschen des Sets')
+        }
+
+        // Set aus der lokalen Liste entfernen
+        cardSets.value = cardSets.value.filter(set => set.id !== setId)
+
+        // Toast anzeigen
+        showSuccessToast.value = true
+
+        // Warte kurz, damit der Toast noch sichtbar ist
+        setTimeout(() => {
+          // Toast ausblenden
+          showSuccessToast.value = false
+          // Seite neu laden
+          window.location.reload()
+        }, 500)
+      } catch (error) {
+        console.error('Error deleting set:', error)
       }
     }
 
@@ -180,8 +228,10 @@ export default {
       showCreateModal,
       showTitlePrompt,
       newSetTitle,
+      showSuccessToast,
       loadSet,
       editSet,
+      deleteSet,
       showModal,
       closeModal,
       createFromPDF,
@@ -267,8 +317,31 @@ export default {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+.delete-icon {
+  position: absolute;
+  top: 8px;
+  right: 48px;
+  width: 32px;
+  height: 32px;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
 .edit-icon:hover {
   background-color: #fff;
+  transform: scale(1.1);
+}
+
+.delete-icon:hover {
+  background-color: #ff4444;
+  color: white;
   transform: scale(1.1);
 }
 
@@ -287,6 +360,42 @@ export default {
 .plus-icon {
   font-size: 2rem;
   color: #6c757d;
+}
+
+/* Success Toast */
+.success-toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: #198754;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  animation: slideIn 0.3s ease-out;
+}
+
+.toast-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+}
+
+.toast-content i {
+  font-size: 1.1rem;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 /* Modal Styles */

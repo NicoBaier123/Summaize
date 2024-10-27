@@ -339,5 +339,82 @@ module.exports = (db) => {
       });
     }
   });
+
+  // Route zum Löschen eines Kartensets und aller zugehörigen Karten
+  router.delete("/users/:userId/card-sets/:setId", async (req, res) => {
+    const timestamp = new Date().toISOString();
+    console.log(`[DEBUG] ${timestamp} - Delete request received`);
+    console.log("[DEBUG] Parameters:", {
+      userId: req.params.userId,
+      setId: req.params.setId,
+    });
+
+    try {
+      const { userId, setId } = req.params;
+
+      // Log the SQL query for debugging
+      console.log("[DEBUG] Checking if set exists:", {
+        query: "SELECT * FROM card_sets WHERE id = ? AND user_id = ?",
+        params: [setId, userId],
+      });
+
+      // Überprüfen ob das Set existiert und dem User gehört
+      const existingSet = await db.get(
+        "SELECT * FROM card_sets WHERE id = ? AND user_id = ?",
+        [setId, userId],
+      );
+
+      console.log("[DEBUG] Existing set query result:", existingSet);
+
+      if (!existingSet) {
+        console.log("[DEBUG] Set not found or unauthorized");
+        return res.status(404).json({
+          error: "Card set not found or access denied",
+          details: { setId, userId },
+        });
+      }
+
+      // Begin transaction
+      console.log("[DEBUG] Starting transaction");
+      await db.run("BEGIN TRANSACTION");
+
+      try {
+        // Erst alle Karten des Sets löschen
+        console.log("[DEBUG] Deleting cards");
+        const deleteCardsResult = await db.run(
+          "DELETE FROM cards WHERE card_set_id = ?",
+          [setId],
+        );
+        console.log("[DEBUG] Cards deletion result:", deleteCardsResult);
+
+        // Dann das Set selbst löschen
+        console.log("[DEBUG] Deleting set");
+        const deleteSetResult = await db.run(
+          "DELETE FROM card_sets WHERE id = ? AND user_id = ?",
+          [setId, userId],
+        );
+        console.log("[DEBUG] Set deletion result:", deleteSetResult);
+
+        console.log("[DEBUG] Committing transaction");
+        await db.run("COMMIT");
+
+        console.log("[DEBUG] Deletion successful");
+        return res.status(204).send();
+      } catch (error) {
+        console.error("[DEBUG] Error during deletion:", error);
+        await db.run("ROLLBACK");
+        throw error;
+      }
+    } catch (error) {
+      console.error("[DEBUG] Error in delete route:", error);
+      if (!res.headersSent) {
+        res.status(500).json({
+          error: "Internal server error",
+          message: error.message,
+          timestamp: new Date().toISOString(),
+        });
+      }
+    }
+  });
   return router;
 };
