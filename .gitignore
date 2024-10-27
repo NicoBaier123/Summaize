@@ -28,4 +28,4 @@ coverage
 *.sw?
 
 *.tsbuildinfo
-.\summaize-backend\database.sqlite
+*.\summaize-backend\database.sqlite
