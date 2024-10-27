@@ -6,6 +6,15 @@
       @add-card="addNewCard"
       @select-card="selectCard"
       @delete-card="deleteCard"
+      @toggle-image-upload="showImageUpload = true"
+    />
+
+    <ImageUploadOverlay
+      v-if="showImageUpload"
+      :card-set-id="cardSetId"
+      :current-image="cardSet?.preview_image_blob"
+      @close="showImageUpload = false"
+      @update:image="handleImageUpdate"
     />
 
     <div class="editor-main">
@@ -55,6 +64,7 @@ import { useRoute, useRouter } from 'vue-router'
 import CardsSidebar from '../components/CardsSidebar.vue'
 import CardEditor from '../components/CardEditor.vue'
 import EditTitle from '../components/EditTitle.vue'
+import ImageUploadOverlay from '../components/ImageUploadOverlay.vue'
 
 export default {
   name: 'EditCardView',
@@ -62,6 +72,7 @@ export default {
     CardsSidebar,
     CardEditor,
     EditTitle,
+    ImageUploadOverlay,
   },
   setup() {
     const route = useRoute()
@@ -80,6 +91,14 @@ export default {
     const editingFront = ref(false)
     const editingBack = ref(false)
     const hasChanges = ref(false)
+    const showImageUpload = ref(false)
+
+    const handleImageUpdate = async () => {
+      await fetchCardSet() // Lade das Kartenset neu um das neue Bild zu sehen
+      if (reloadGallery) {
+        reloadGallery() // Aktualisiere die Galerie wenn vorhanden
+      }
+    }
 
     const cardSetTitle = computed({
       get: () => cardSet.value?.title || '',
@@ -272,6 +291,8 @@ export default {
       toggleEdit,
       updateEditedCard,
       saveChanges,
+      showImageUpload,
+      handleImageUpdate,
     }
   },
 }

@@ -2,13 +2,22 @@
   <div class="cards-sidebar">
     <div class="sidebar-header">
       <h3>Kartenliste</h3>
-      <button
-        class="add-card-button"
-        @click="$emit('add-card')"
-        title="Neue Karte"
-      >
-        <i class="fas fa-plus"></i>
-      </button>
+      <div class="header-actions">
+        <button
+          class="action-button"
+          @click="$emit('toggle-image-upload')"
+          title="Titelbild ändern"
+        >
+          <i class="fas fa-camera"></i>
+        </button>
+        <button
+          class="action-button"
+          @click="$emit('add-card')"
+          title="Neue Karte"
+        >
+          <i class="fas fa-plus"></i>
+        </button>
+      </div>
     </div>
     <div class="cards-list">
       <div
@@ -44,6 +53,7 @@ export default {
       default: null,
     },
   },
+  emits: ['add-card', 'select-card', 'delete-card', 'toggle-image-upload'],
   methods: {
     truncateText(text) {
       return text?.length > 30 ? text.substring(0, 27) + '...' : text
@@ -69,7 +79,12 @@ export default {
   align-items: center;
 }
 
-.add-card-button {
+.header-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.action-button {
   background: none;
   border: none;
   font-size: 1.2rem;
@@ -78,14 +93,20 @@ export default {
   padding: 8px;
   border-radius: 50%;
   transition: all 0.3s ease;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.add-card-button:hover {
+.action-button:hover {
   background-color: #f8f9fa;
   color: #212529;
+  transform: scale(1.1);
 }
 
-.add-card-button:active {
+.action-button:active {
   transform: scale(0.95);
 }
 
@@ -180,6 +201,16 @@ export default {
   .cards-sidebar {
     width: 100%;
     height: 200px;
+  }
+
+  .header-actions {
+    gap: 4px;
+  }
+
+  .action-button {
+    width: 32px;
+    height: 32px;
+    font-size: 1rem;
   }
 }
 </style>

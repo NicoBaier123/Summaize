@@ -1,11 +1,27 @@
 const express = require("express");
 const cors = require("cors");
-const initializeDatabase = require("./db");
+const multer = require("multer"); // Neue Abhängigkeit
+const { initializeDatabase } = require("./db"); // Geändert zu destrukturiertem Import
 const routes = require("./routes");
-
 const app = express();
 
-// 1. CORS muss als erstes kommen
+// Multer Konfiguration
+const storage = multer.memoryStorage();
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB Limit
+  },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith("image/")) {
+      cb(null, true);
+    } else {
+      cb(new Error("Nur Bilddateien sind erlaubt!"), false);
+    }
+  },
+});
+
+// 1. CORS
 app.use(
   cors({
     origin: ["http://localhost:5173", "http://127.0.0.1:5173"],
@@ -15,19 +31,23 @@ app.use(
   }),
 );
 
-// 2. Body Parser MUSS vor dem Logging kommen
-app.use(express.json({ limit: "10mb" }));
+// 2. Body Parser
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
 // 3. Logging Middleware
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
-  if (req.method !== "GET") {
-    console.log("Request body:", req.body);
+  if (req.method !== "GET" && !req.url.includes("/preview-image")) {
+    const bodyToLog = { ...req.body };
+    if (bodyToLog.image) bodyToLog.image = "[Image Data]";
+    console.log("Request body:", bodyToLog);
   }
-  // Response Logging
   const oldJson = res.json;
   res.json = function (data) {
-    console.log("Response:", data);
+    const dataToLog = { ...data };
+    if (dataToLog.image) dataToLog.image = "[Image Data]";
+    console.log("Response:", dataToLog);
     return oldJson.apply(res, arguments);
   };
   next();
@@ -35,7 +55,8 @@ app.use((req, res, next) => {
 
 // 4. Request Timeout
 app.use((req, res, next) => {
-  req.setTimeout(5000, () => {
+  const timeout = req.url.includes("/preview-image") ? 30000 : 5000;
+  req.setTimeout(timeout, () => {
     console.error(
       `${new Date().toISOString()} - Request timeout for ${req.method} ${req.url}`,
     );
@@ -51,20 +72,17 @@ async function startServer() {
     console.log(`${new Date().toISOString()} - Initializing database...`);
     db = await initializeDatabase();
 
-    // Teste Datenbankverbindung
     await db.get("SELECT 1");
     console.log(`${new Date().toISOString()} - Database connection verified`);
 
-    // Stelle db dem Request-Objekt zur Verfügung
     app.use((req, res, next) => {
       req.db = db;
+      req.upload = upload; // Multer verfügbar machen
       next();
     });
 
-    // Routes einbinden
     app.use("/api", routes(db));
 
-    // 404 Handler
     app.use((req, res) => {
       console.log(
         `${new Date().toISOString()} - 404 Not Found: ${req.method} ${req.url}`,
@@ -72,9 +90,22 @@ async function startServer() {
       res.status(404).json({ error: "Route not found" });
     });
 
-    // 5. Error Handling Middleware muss als letztes kommen
     app.use((err, req, res, next) => {
       console.error(`${new Date().toISOString()} - Error:`, err);
+
+      if (err instanceof multer.MulterError) {
+        if (err.code === "LIMIT_FILE_SIZE") {
+          return res.status(400).json({
+            error: "File too large",
+            message: "Die Datei darf nicht größer als 5MB sein.",
+          });
+        }
+        return res.status(400).json({
+          error: "Upload error",
+          message: err.message,
+        });
+      }
+
       res.status(500).json({
         error: "Internal Server Error",
         message: err.message,
@@ -89,13 +120,11 @@ async function startServer() {
       );
     });
 
-    // Server Error Handler
     server.on("error", (error) => {
       console.error(`${new Date().toISOString()} - Server error:`, error);
       process.exit(1);
     });
 
-    // Graceful Shutdown
     process.on("SIGTERM", () => {
       console.log(
         `${new Date().toISOString()} - SIGTERM received. Closing server...`,
@@ -120,7 +149,6 @@ async function startServer() {
   }
 }
 
-// Globale Fehlerbehandlung
 process.on("unhandledRejection", (reason, promise) => {
   console.error(
     `${new Date().toISOString()} - Unhandled Rejection at:`,

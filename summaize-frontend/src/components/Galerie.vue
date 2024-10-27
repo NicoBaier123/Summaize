@@ -67,10 +67,14 @@
         </div>
         <div class="tile-content" @click="loadSet(set.id)">
           <img
-            :src="set.preview_image_url || '/placeholder-image.jpg'"
+            v-if="set.preview_image_blob"
+            :src="set.preview_image_blob"
             :alt="set.title"
             class="preview-image"
           />
+          <div v-else class="preview-placeholder">
+            <i class="fas fa-image"></i>
+          </div>
           <p class="set-title">{{ set.title }}</p>
         </div>
       </div>
@@ -117,6 +121,14 @@ export default {
       } catch (error) {
         console.error('Error loading card sets:', error)
       }
+    }
+
+    const getPreviewImage = set => {
+      if (set.preview_image_blob) {
+        // Convert blob data to base64 URL
+        return `data:image/jpeg;base64,${set.preview_image_blob}`
+      }
+      return '/img/Deutsche_Staedte.jpg'
     }
 
     const showModal = () => {
@@ -247,6 +259,7 @@ export default {
       cancelTitleInput,
       createNewSet,
       loadCardSets,
+      getPreviewImage,
     }
   },
 }
@@ -286,13 +299,22 @@ export default {
   align-items: center;
 }
 
+.preview-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f8f9fa;
+  color: #adb5bd;
+  font-size: 2rem;
+}
+
 .preview-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  position: absolute;
-  top: 0;
-  left: 0;
+  background-color: #f8f9fa;
 }
 
 .set-title {

@@ -16,11 +16,20 @@ module.exports = (db) => {
       `;
       console.log(`${new Date().toISOString()} - Executing query: ${query}`);
       const cardSets = await db.all(query, [userId]);
+
+      // Konvertiere BLOB zu Base64 wenn vorhanden
+      const processedCardSets = cardSets.map((set) => ({
+        ...set,
+        preview_image_blob: set.preview_image_blob
+          ? `data:image/jpeg;base64,${Buffer.from(set.preview_image_blob).toString("base64")}`
+          : null,
+      }));
+
       console.log(
         `${new Date().toISOString()} - Query result:`,
-        JSON.stringify(cardSets, null, 2),
+        JSON.stringify(processedCardSets, null, 2),
       );
-      res.json(cardSets);
+      res.json(processedCardSets);
     } catch (error) {
       console.error(
         `${new Date().toISOString()} - Error fetching card sets:`,
@@ -44,7 +53,7 @@ module.exports = (db) => {
         SELECT
           cs.id AS set_id,
           cs.title AS set_title,
-          cs.preview_image_url,
+          cs.preview_image_blob,
           c.id AS card_id,
           c.front_content,
           c.back_content
@@ -62,7 +71,9 @@ module.exports = (db) => {
       const cardSet = {
         id: results[0].set_id,
         title: results[0].set_title,
-        preview_image_url: results[0].preview_image_url,
+        preview_image_blob: results[0].preview_image_blob
+          ? `data:image/jpeg;base64,${Buffer.from(results[0].preview_image_blob).toString("base64")}`
+          : null,
         cards: results
           .filter((row) => row.card_id)
           .map((row) => ({
@@ -109,7 +120,7 @@ module.exports = (db) => {
       await db.run("BEGIN TRANSACTION");
 
       const insertQuery = `
-        INSERT INTO card_sets (user_id, title, preview_image_url, created_at, updated_at)
+        INSERT INTO card_sets (user_id, title, preview_image_blob, created_at, updated_at)
         VALUES (?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
       `;
 
@@ -147,7 +158,7 @@ module.exports = (db) => {
     }
   });
 
-  // Kartenset aktualisieren
+  // Kartenset-Titel aktualisieren
   router.put("/users/:userId/card-sets/:id", async (req, res) => {
     const timestamp = new Date().toISOString();
     console.log(`${timestamp} - Update request received`);
