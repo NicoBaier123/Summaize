@@ -17,11 +17,12 @@ const login = async (req, res, db, jwt, jwt_secret) => {
       WHERE username = ? OR email = ?;
     `;
 
-    const { id, password_hash } = await db.get(queryUserQuery, [login, login]);
+    const user = await db.get(queryUserQuery, [login, login]);
 
-    if (!id) {
-      return res.status(401).json({ error: "login_failed_missing_id" });
+    if (!user) {
+      return res.status(401).json({ error: "login_failed_user_not_found" });
     } else {
+      const { id, password_hash } = user;
       const match = await bcrypt.compare(password, password_hash);
       if (!match) {
         return res.status(401).json({ error: "login_failed_wrong_pass" });
