@@ -1,8 +1,50 @@
 const express = require("express");
 const router = express.Router();
 
+const crypto = require("crypto");
+const jwt = require("jsonwebtoken");
+
+// Generate node secret key for jwt
+const jwt_secret = crypto.createSecretKey(crypto.randomBytes(32));
+
 // API Subsystems
 const auth = require("auto-load")("./api/auth");
+
+// Middleware function to verify JWT
+const verifyToken = (req, res, next) => {
+  if (req.path === "/auth/login" || req.path === "/auth/register") {
+    next(); // Skip token verification for login and register
+    return;
+  }
+  try {
+    const token = req.cookies.token; // Access the token from the cookie
+
+    if (!token) {
+      return res.status(401).json({ error: "No token provided" });
+    }
+
+    jwt.verify(token, jwt_secret, (err, decoded) => {
+      if (err) {
+        return res.status(403).json({ error: "Failed to authenticate token" });
+      }
+
+      req.userId = decoded.userId;
+      next();
+    });
+  } catch (error) {
+    console.error(
+      `${new Date().toISOString()} - Error verifying token:`,
+      error,
+    );
+    res.status(500).json({
+      error: "An error occurred while verifying token",
+      details: error.message,
+    });
+  }
+};
+
+// Make verifyToken run before every request
+router.use(verifyToken);
 
 module.exports = (db) => {
   // Bestehende Route zum Abrufen aller Kartensets eines Benutzers
@@ -110,11 +152,9 @@ module.exports = (db) => {
     }
   });
 
-  // ...
-
   // POST route for user login
   router.post("/auth/login", async (req, res) => {
-    auth.login(req, res, db);
+    auth.login(req, res, db, jwt, jwt_secret);
   });
 
   // POST route for user registration

@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const initializeDatabase = require("./db");
 const routes = require("./routes");
+const cookieParser = require("cookie-parser");
 
 const app = express();
 
@@ -19,6 +20,9 @@ app.use(
     credentials: true,
   }),
 );
+
+// Cookie-Parser Middleware
+app.use(cookieParser());
 
 app.use(express.json());
 

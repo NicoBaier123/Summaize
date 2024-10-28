@@ -1,6 +1,6 @@
 const bcrypt = require("bcrypt");
 
-const login = async (req, res, db) => {
+const login = async (req, res, db, jwt, jwt_secret) => {
   try {
     const { login, password } = req.body;
 
@@ -26,8 +26,25 @@ const login = async (req, res, db) => {
       if (!match) {
         return res.status(401).json({ error: "login_failed_wrong_pass" });
       } else if (match) {
-        // Send response
-        res.json({ message: "login_success" });
+        jwt.sign(
+          { id },
+          jwt_secret,
+          { algorithm: "HS256", expiresIn: "2d" },
+          (err, token) => {
+            if (err) {
+              console.error(
+                `${new Date().toISOString()} - Error signing token:`,
+                err,
+              );
+              res.status(500).json({
+                error: "An error occurred during login",
+                details: err.message,
+              });
+            } else {
+              res.json({ token });
+            }
+          },
+        );
       }
     }
   } catch (error) {
