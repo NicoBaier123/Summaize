@@ -3,15 +3,19 @@
   "version": "1.0.0",
   "private": true,
   "dependencies": {
+    "axios": "^1.7.7",
     "bootstrap": "^5.3.3",
     "bootstrap-icons": "^1.11.3",
+    "bootstrap-vue-3": "^0.5.1",
     "cors": "^2.8.5",
     "express": "^4.21.1",
     "jquery": "^3.7.1",
+    "multer": "^1.4.5-lts.1",
+    "sharp": "^0.33.5",
     "sqlite": "^5.1.1",
     "sqlite3": "^5.1.7",
-    "summaize-frontend": "file:./summaize-frontend",
-    "summaize-backend": "file:./summaize-backend"
+    "summaize-backend": "file:./summaize-backend",
+    "summaize-frontend": "file:./summaize-frontend"
   },
   "scripts": {
     "start:frontend": "cd summaize-frontend && npm run dev",

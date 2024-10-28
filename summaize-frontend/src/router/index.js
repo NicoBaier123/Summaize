@@ -3,6 +3,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import DisplayCardView from '../views/DisplayCardView.vue'
 import DragAndDropView from '@/views/DragAndDropView.vue'
 import MainView from '@/views/MainView.vue'
+import EditCardView from '../views/EditCardView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -34,6 +35,12 @@ const router = createRouter({
       path: '/card-set/:id',
       name: 'DisplayCard',
       component: DisplayCardView,
+    },
+    {
+      path: '/edit-set/:id',
+      name: 'EditCardSet',
+      component: EditCardView,
+      props: true,
     },
   ],
 })
