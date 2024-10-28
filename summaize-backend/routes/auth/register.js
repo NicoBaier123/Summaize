@@ -2,6 +2,7 @@ const bcrypt = require("bcrypt");
 
 const register = (req, res, db) => {
   try {
+    console.log(req.body);
     const { login, email, password } = req.body;
 
     // Validate login data

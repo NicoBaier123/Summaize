@@ -4,6 +4,7 @@ import DisplayCardView from '../views/DisplayCardView.vue'
 import DragAndDropView from '@/views/DragAndDropView.vue'
 import MainView from '@/views/MainView.vue'
 import EditCardView from '../views/EditCardView.vue'
+import LoginView from '@/views/LoginView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -41,6 +42,11 @@ const router = createRouter({
       name: 'EditCardSet',
       component: EditCardView,
       props: true,
+    },
+    {
+      path: '/login',
+      name: 'Login',
+      component: LoginView,
     },
   ],
 })
