@@ -1,41 +1,43 @@
 const express = require("express");
 const router = express.Router();
+const sharp = require("sharp");
 
 module.exports = (db) => {
-  // Vorschaubild hochladen
+  const logOperation = (operation, details) => {
+    console.log(`${new Date().toISOString()} - ${operation}:`, details);
+  };
+
+  const optimizeImage = async (imageBuffer) => {
+    return sharp(imageBuffer)
+      .resize(800, 600, {
+        fit: "inside",
+        withoutEnlargement: true,
+      })
+      .jpeg({ quality: 80 })
+      .toBuffer();
+  };
+
+  /**
+   * POST /card-sets/:setId/preview-image/preview-image
+   * Uploads and processes a new preview image for a card set
+   */
   router.post(
     "/card-sets/:setId/preview-image/preview-image",
     async (req, res) => {
-      const timestamp = new Date().toISOString();
-      console.log(
-        `${timestamp} - Processing image upload for set ${req.params.setId}`,
-      );
-
       const upload = req.upload.single("image");
 
       upload(req, res, async (err) => {
         if (err) {
-          console.error(`${timestamp} - Upload error:`, err);
+          logOperation("Upload error", err.message);
           return res.status(400).json({ error: "Fehler beim Upload" });
         }
 
         try {
           const setId = req.params.setId;
-          const imageBuffer = req.file.buffer;
+          logOperation("Processing image upload", { setId });
 
-          // Bildoptimierung mit sharp
-          const sharp = require("sharp");
-          const optimizedImageBuffer = await sharp(imageBuffer)
-            .resize(800, 600, {
-              fit: "inside",
-              withoutEnlargement: true,
-            })
-            .jpeg({ quality: 80 })
-            .toBuffer();
+          const optimizedImageBuffer = await optimizeImage(req.file.buffer);
 
-          console.log(`${timestamp} - Image optimized, saving to database`);
-
-          // Speichere das Bild in der Datenbank
           await req.db.run(
             `UPDATE card_sets
            SET preview_image_blob = ?,
@@ -44,16 +46,14 @@ module.exports = (db) => {
             [optimizedImageBuffer, setId],
           );
 
-          console.log(`${timestamp} - Image saved successfully`);
-
-          // Sende das optimierte Bild zurück
+          logOperation("Successfully uploaded image", { setId });
           res.json({
             message: "Bild erfolgreich hochgeladen",
             preview_image_blob: `data:image/jpeg;base64,${optimizedImageBuffer.toString("base64")}`,
             updated: true,
           });
         } catch (error) {
-          console.error(`${timestamp} - Error saving image:`, error);
+          logOperation("Error saving image", error.message);
           res.status(500).json({
             error: "Fehler beim Speichern des Bildes",
             details: error.message,
@@ -63,17 +63,17 @@ module.exports = (db) => {
     },
   );
 
-  // Vorschaubild abrufen
+  /**
+   * GET /card-sets/:setId/preview-image/preview-image
+   * Retrieves the preview image for a specific card set
+   */
   router.get(
     "/card-sets/:setId/preview-image/preview-image",
     async (req, res) => {
-      const timestamp = new Date().toISOString();
-      console.log(
-        `${timestamp} - Fetching preview image for set ${req.params.setId}`,
-      );
-
       try {
         const setId = req.params.setId;
+        logOperation("Fetching preview image", { setId });
+
         const result = await req.db.get(
           `SELECT preview_image_blob 
          FROM card_sets 
@@ -82,7 +82,6 @@ module.exports = (db) => {
         );
 
         if (!result?.preview_image_blob) {
-          console.log(`${timestamp} - No preview image found for set ${setId}`);
           return res.status(404).json({ error: "Kein Vorschaubild gefunden" });
         }
 
@@ -90,7 +89,7 @@ module.exports = (db) => {
           preview_image_blob: `data:image/jpeg;base64,${Buffer.from(result.preview_image_blob).toString("base64")}`,
         });
       } catch (error) {
-        console.error(`${timestamp} - Error fetching image:`, error);
+        logOperation("Error fetching image", error.message);
         res.status(500).json({
           error: "Fehler beim Abrufen des Bildes",
           details: error.message,
@@ -99,17 +98,16 @@ module.exports = (db) => {
     },
   );
 
-  // Vorschaubild löschen
+  /**
+   * DELETE /card-sets/:setId/preview-image/preview-image
+   * Removes the preview image from a card set
+   */
   router.delete(
     "/card-sets/:setId/preview-image/preview-image",
     async (req, res) => {
-      const timestamp = new Date().toISOString();
-      console.log(
-        `${timestamp} - Deleting preview image for set ${req.params.setId}`,
-      );
-
       try {
         const setId = req.params.setId;
+        logOperation("Deleting preview image", { setId });
 
         const result = await req.db.run(
           `UPDATE card_sets
@@ -120,48 +118,43 @@ module.exports = (db) => {
         );
 
         if (result.changes === 0) {
-          console.log(`${timestamp} - No set found with ID ${setId}`);
           return res.status(404).json({ error: "Kartenset nicht gefunden" });
         }
 
-        console.log(`${timestamp} - Preview image deleted successfully`);
+        logOperation("Successfully deleted preview image", { setId });
         res.json({
           message: "Bild erfolgreich gelöscht",
           updated: true,
         });
       } catch (error) {
-        console.error(`${timestamp} - Error deleting image:`, error);
-        res
-          .status(500)
-          .json({
-            error: "Fehler beim Löschen des Bildes",
-            details: error.message,
-          });
+        logOperation("Error deleting image", error.message);
+        res.status(500).json({
+          error: "Fehler beim Löschen des Bildes",
+          details: error.message,
+        });
       }
     },
   );
 
-  // Vorschaubild aktualisieren
+  /**
+   * PUT /card-sets/:setId/preview-image/preview-image
+   * Updates the preview image for a card set
+   */
   router.put(
     "/card-sets/:setId/preview-image/preview-image",
     async (req, res) => {
-      const timestamp = new Date().toISOString();
-      console.log(
-        `${timestamp} - Updating preview image for set ${req.params.setId}`,
-      );
-
       const upload = req.upload.single("image");
 
       upload(req, res, async (err) => {
         if (err) {
-          console.error(`${timestamp} - Upload error:`, err);
+          logOperation("Upload error", err.message);
           return res.status(400).json({ error: "Fehler beim Upload" });
         }
 
         try {
           const setId = req.params.setId;
+          logOperation("Updating preview image", { setId });
 
-          // Prüfe ob das Set existiert
           const existingSet = await req.db.get(
             "SELECT id FROM card_sets WHERE id = ?",
             [setId],
@@ -171,19 +164,7 @@ module.exports = (db) => {
             return res.status(404).json({ error: "Kartenset nicht gefunden" });
           }
 
-          const imageBuffer = req.file.buffer;
-
-          // Bildoptimierung mit sharp
-          const sharp = require("sharp");
-          const optimizedImageBuffer = await sharp(imageBuffer)
-            .resize(800, 600, {
-              fit: "inside",
-              withoutEnlargement: true,
-            })
-            .jpeg({ quality: 80 })
-            .toBuffer();
-
-          console.log(`${timestamp} - Image optimized, updating in database`);
+          const optimizedImageBuffer = await optimizeImage(req.file.buffer);
 
           await req.db.run(
             `UPDATE card_sets
@@ -193,15 +174,14 @@ module.exports = (db) => {
             [optimizedImageBuffer, setId],
           );
 
-          console.log(`${timestamp} - Image updated successfully`);
-
+          logOperation("Successfully updated preview image", { setId });
           res.json({
             message: "Bild erfolgreich aktualisiert",
             preview_image_blob: `data:image/jpeg;base64,${optimizedImageBuffer.toString("base64")}`,
             updated: true,
           });
         } catch (error) {
-          console.error(`${timestamp} - Error updating image:`, error);
+          logOperation("Error updating image", error.message);
           res.status(500).json({
             error: "Fehler beim Aktualisieren des Bildes",
             details: error.message,

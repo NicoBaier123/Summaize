@@ -5,27 +5,24 @@ const previewImageRoutes = require("./previewImage.routes");
 
 function initializeRoutes(db) {
   const router = express.Router();
+  const logOperation = (operation, details) => {
+    console.log(`${new Date().toISOString()} - ${operation}:`, details);
+  };
 
-  // Log alle eingehenden Requests
+  // Log incoming requests
   router.use((req, res, next) => {
-    console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+    logOperation("Incoming request", { method: req.method, path: req.path });
     next();
   });
 
-  // Kartenset und User-bezogene Routen
-  router.use("/", cardSetRoutes(db));
+  // Mount route handlers
+  router.use("/", cardSetRoutes(db)); // Card set and user routes
+  router.use("/", cardRoutes(db)); // Card management routes
+  router.use("/", previewImageRoutes(db)); // Preview image routes
 
-  // Karten-bezogene Routen
-  router.use("/", cardRoutes(db));
-
-  // Vorschaubild-bezogene Routen
-  router.use("/", previewImageRoutes(db));
-
-  // Error-Handler für nicht gefundene Routen
+  // Handle 404 errors
   router.use((req, res) => {
-    console.log(
-      `${new Date().toISOString()} - Route not found: ${req.method} ${req.path}`,
-    );
+    logOperation("Route not found", { method: req.method, path: req.path });
     res.status(404).json({
       error: "Route not found",
       path: req.path,
@@ -33,9 +30,14 @@ function initializeRoutes(db) {
     });
   });
 
-  // Globaler Error-Handler
+  // Global error handler
   router.use((err, req, res, next) => {
-    console.error(`${new Date().toISOString()} - Error:`, err);
+    logOperation("Error occurred", {
+      path: req.path,
+      method: req.method,
+      error: err.message,
+    });
+
     res.status(err.status || 500).json({
       error: err.message || "Internal Server Error",
       timestamp: new Date().toISOString(),
