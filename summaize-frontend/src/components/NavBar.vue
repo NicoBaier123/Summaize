@@ -8,9 +8,7 @@
     >
       <!-- Linke Seite mit den Links -->
       <div class="d-flex align-items-center">
-        <router-link class="navbar-brand nav-item" to="/"
-          >SummerAize</router-link
-        >
+        <router-link class="navbar-brand nav-item" to="/">SummAize</router-link>
         <router-link class="nav-link nav-item" to="/about">About</router-link>
         <router-link class="nav-link nav-item" to="/admin">Admin</router-link>
       </div>
