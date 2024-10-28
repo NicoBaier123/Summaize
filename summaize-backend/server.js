@@ -3,6 +3,7 @@ const cors = require("cors");
 const multer = require("multer");
 const { initializeDatabase } = require("./db");
 const routes = require("./routes");
+const cookieParser = require("cookie-parser");
 const app = express();
 
 // Multer Konfiguration
@@ -30,6 +31,12 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization"],
   }),
 );
+
+// Cookie-Parser Middleware
+app.use(cookieParser());
+
+// Cookie-Parser Middleware
+app.use(cookieParser());
 
 // Body Parser
 app.use(express.json({ limit: "50mb" }));
