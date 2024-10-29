@@ -55,48 +55,61 @@ export default {
     const isAuthenticated = ref(false)
     const showGalerie = ref(false)
 
-    const handleLoginSuccess = async () => {
-      console.log('Login success handler called')
+    const waitForCookie = async () => {
+      let attempts = 0
+      const maxAttempts = 10
 
-      // Direkt den Auth-Status setzen
-      isAuthenticated.value = true
-      showGalerie.value = true
+      while (attempts < maxAttempts) {
+        const cookies = document.cookie.split(';').map(c => c.trim())
+        const hasToken = cookies.some(c => c.startsWith('token='))
 
-      // Warte auf den nächsten Tick
-      await nextTick()
+        if (hasToken) {
+          return true
+        }
 
-      // Lade die Galerie
-      if (galerieRef.value?.loadCardSets) {
-        galerieRef.value.loadCardSets()
+        await new Promise(resolve => setTimeout(resolve, 100))
+        attempts++
       }
 
-      // Navigiere zur Hauptseite
-      if (router.currentRoute.value.path === '/login') {
-        console.log('Navigating to home...')
-        await router.push('/')
-      }
+      return false
     }
 
     const checkAuthentication = () => {
       console.log('Checking authentication...')
+      const cookies = document.cookie.split(';').map(c => c.trim())
+      console.log('All cookies:', cookies)
 
-      try {
-        // Prüfe auf Token in verschiedenen Formaten
-        const cookies = document.cookie.split(';').map(c => c.trim())
+      const hasToken = cookies.some(c => c.startsWith('token='))
+      console.log('Has token:', hasToken)
 
-        console.log('All cookies:', cookies)
+      isAuthenticated.value = hasToken
+      showGalerie.value = hasToken
 
-        const hasToken = cookies.some(c => c.startsWith('token='))
+      return hasToken
+    }
 
-        console.log('Has token:', hasToken)
+    const handleLoginSuccess = async () => {
+      console.log('Login success handler called')
 
-        isAuthenticated.value = hasToken
-        showGalerie.value = hasToken
+      // Warte auf das Cookie
+      const cookieSet = await waitForCookie()
 
-        return hasToken
-      } catch (error) {
-        console.error('Error checking authentication:', error)
-        return false
+      if (cookieSet) {
+        console.log('Cookie found after login')
+        isAuthenticated.value = true
+        showGalerie.value = true
+
+        await nextTick()
+
+        if (galerieRef.value?.loadCardSets) {
+          await galerieRef.value.loadCardSets()
+        }
+
+        if (router.currentRoute.value.path === '/login') {
+          await router.push('/')
+        }
+      } else {
+        console.error('Cookie not found after login')
       }
     }
 
@@ -107,33 +120,34 @@ export default {
           credentials: 'include',
         })
 
+        if (!response.ok) {
+          throw new Error('Logout failed on server')
+        }
+
+        // Clear frontend state
         isAuthenticated.value = false
         showGalerie.value = false
+        isSidebarOpen.value = false // Close sidebar on logout
 
-        // Lösche das Cookie
+        // Clear the cookie immediately
         document.cookie =
           'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax'
 
-        if (!response.ok) {
-          console.error('Logout failed on server')
-        }
-
-        router.push('/login')
+        await router.push('/login')
       } catch (error) {
         console.error('Logout error:', error)
-        router.push('/login')
+        // Still redirect to login on error for safety
+        await router.push('/login')
       }
     }
-
-    onMounted(async () => {
-      await checkAuthentication()
+    onMounted(() => {
+      checkAuthentication()
     })
 
-    // Watch für Route-Änderungen
     watch(
       () => router.currentRoute.value.path,
-      async () => {
-        await checkAuthentication()
+      () => {
+        checkAuthentication()
       },
     )
 

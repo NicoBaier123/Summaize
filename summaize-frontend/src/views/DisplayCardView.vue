@@ -28,6 +28,7 @@ import { ref, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import DisplayCard from '../components/DisplayCard.vue'
 import DisplayCardNav from '../components/DisplayCardNav.vue'
+import { getTokenData } from '../utils/token'
 
 export default {
   name: 'DisplayCardView',
@@ -42,13 +43,12 @@ export default {
     },
   },
   setup(props) {
+    const userId = getTokenData('id')
     const route = useRoute()
     const cardSet = ref(null)
     const currentIndex = ref(0)
     const isCompleted = ref(false)
     const displayCard = ref(null)
-
-    const userId = 1
 
     const fetchCardSet = async setId => {
       if (!setId) return

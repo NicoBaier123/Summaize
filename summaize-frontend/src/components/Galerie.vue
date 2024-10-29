@@ -85,6 +85,7 @@
 <script>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { getTokenData } from '@/utils/token'
 
 export default {
   name: 'GalerieSidebar',
@@ -97,7 +98,7 @@ export default {
     const showTitlePrompt = ref(false)
     const newSetTitle = ref('')
     const showSuccessToast = ref(false)
-    const userId = 1
+    const userId = getTokenData('id')
 
     const sortedCardSets = computed(() => {
       return [...cardSets.value].sort(

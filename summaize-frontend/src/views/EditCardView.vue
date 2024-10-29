@@ -65,6 +65,7 @@ import CardsSidebar from '../components/CardsSidebar.vue'
 import CardEditor from '../components/CardEditor.vue'
 import EditTitle from '../components/EditTitle.vue'
 import ImageUploadOverlay from '../components/ImageUploadOverlay.vue'
+import { getTokenData } from '../utils/token'
 
 export default {
   name: 'EditCardView',
@@ -77,7 +78,7 @@ export default {
   setup() {
     const route = useRoute()
     const router = useRouter()
-    const userId = 1
+    const userId = getTokenData('id')
     const loading = ref(true)
     const cardSetId = computed(() => route.params.id)
 
