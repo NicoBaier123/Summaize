@@ -13,8 +13,12 @@ const jwt_secret = crypto.createSecretKey(crypto.randomBytes(32));
 
 // Middleware function to verify JWT
 const verifyToken = (req, res, next) => {
-  if (req.path === "/auth/login" || req.path === "/auth/register") {
-    next(); // Skip token verification for login and register
+  if (
+    req.path === "/auth/login" ||
+    req.path === "/auth/register" ||
+    req.path === "/auth/logout"
+  ) {
+    next(); // Skip token verification for auth routes
     return;
   }
   try {
@@ -60,19 +64,21 @@ function initializeRoutes(db) {
   router.use(verifyToken);
 
   // Mount route handlers
-  router.use("/", cardSetRoutes(db)); // Card set and user routes
-  router.use("/", cardRoutes(db)); // Card management routes
-  router.use("/", previewImageRoutes(db)); // Preview image routes
+  router.use("/", cardSetRoutes(db));
+  router.use("/", cardRoutes(db));
+  router.use("/", previewImageRoutes(db));
 
-  // POST route for user login
-  router.post("/auth/login", async (req, res) => {
-    console.log("got here");
+  // Auth routes
+  router.post("/auth/login", (req, res) => {
     auth.login(req, res, db, jwt, jwt_secret);
   });
 
-  // POST route for user registration
-  router.post("/auth/register", async (req, res) => {
+  router.post("/auth/register", (req, res) => {
     auth.register(req, res, db);
+  });
+
+  router.post("/auth/logout", (req, res) => {
+    auth.logout(req, res);
   });
 
   // Handle 404 errors

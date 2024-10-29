@@ -1,35 +1,43 @@
-// App.vue
 <template>
   <div id="app">
-    <NavBar class="navbar" />
+    <NavBar
+      class="navbar"
+      :isAuthenticated="isAuthenticated"
+      @logout="handleLogout"
+    />
     <div class="content-wrapper">
       <RouterView
         class="router-view"
-        :class="{ 'sidebar-open': isSidebarOpen }"
+        :class="{ 'sidebar-open': isSidebarOpen && isAuthenticated }"
+        @login-success="handleLoginSuccess"
       />
-      <Galerie
-        ref="galerieRef"
-        class="galerie-sidebar"
-        :class="{ open: isSidebarOpen }"
-        @modal-state="handleModalState"
-      />
-      <button
-        v-show="!isModalOpen"
-        @click="toggleSidebar"
-        class="sidebar-toggle btn btn-light"
-        :class="{ open: isSidebarOpen }"
-      >
-        <i
-          class="bi"
-          :class="isSidebarOpen ? 'bi-chevron-right' : 'bi-chevron-left'"
-        ></i>
-      </button>
+      <template v-if="isAuthenticated">
+        <Galerie
+          ref="galerieRef"
+          class="galerie-sidebar"
+          :class="{ open: isSidebarOpen }"
+          @modal-state="handleModalState"
+          v-show="showGalerie"
+        />
+        <button
+          v-show="!isModalOpen && showGalerie"
+          @click="toggleSidebar"
+          class="sidebar-toggle btn btn-light"
+          :class="{ open: isSidebarOpen }"
+        >
+          <i
+            class="bi"
+            :class="isSidebarOpen ? 'bi-chevron-right' : 'bi-chevron-left'"
+          ></i>
+        </button>
+      </template>
     </div>
   </div>
 </template>
 
 <script>
-import { ref, provide } from 'vue'
+import { ref, provide, onMounted, watch, nextTick } from 'vue'
+import { useRouter } from 'vue-router'
 import NavBar from './components/NavBar.vue'
 import Galerie from '@/components/Galerie.vue'
 
@@ -40,9 +48,94 @@ export default {
     Galerie,
   },
   setup() {
+    const router = useRouter()
     const isSidebarOpen = ref(true)
     const galerieRef = ref(null)
     const isModalOpen = ref(false)
+    const isAuthenticated = ref(false)
+    const showGalerie = ref(false)
+
+    const handleLoginSuccess = async () => {
+      console.log('Login success handler called')
+
+      // Direkt den Auth-Status setzen
+      isAuthenticated.value = true
+      showGalerie.value = true
+
+      // Warte auf den nächsten Tick
+      await nextTick()
+
+      // Lade die Galerie
+      if (galerieRef.value?.loadCardSets) {
+        galerieRef.value.loadCardSets()
+      }
+
+      // Navigiere zur Hauptseite
+      if (router.currentRoute.value.path === '/login') {
+        console.log('Navigating to home...')
+        await router.push('/')
+      }
+    }
+
+    const checkAuthentication = () => {
+      console.log('Checking authentication...')
+
+      try {
+        // Prüfe auf Token in verschiedenen Formaten
+        const cookies = document.cookie.split(';').map(c => c.trim())
+
+        console.log('All cookies:', cookies)
+
+        const hasToken = cookies.some(c => c.startsWith('token='))
+
+        console.log('Has token:', hasToken)
+
+        isAuthenticated.value = hasToken
+        showGalerie.value = hasToken
+
+        return hasToken
+      } catch (error) {
+        console.error('Error checking authentication:', error)
+        return false
+      }
+    }
+
+    const handleLogout = async () => {
+      try {
+        const response = await fetch('/api/auth/logout', {
+          method: 'POST',
+          credentials: 'include',
+        })
+
+        isAuthenticated.value = false
+        showGalerie.value = false
+
+        // Lösche das Cookie
+        document.cookie =
+          'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax'
+
+        if (!response.ok) {
+          console.error('Logout failed on server')
+        }
+
+        router.push('/login')
+      } catch (error) {
+        console.error('Logout error:', error)
+        router.push('/login')
+      }
+    }
+
+    onMounted(async () => {
+      await checkAuthentication()
+    })
+
+    // Watch für Route-Änderungen
+    watch(
+      () => router.currentRoute.value.path,
+      async () => {
+        await checkAuthentication()
+      },
+    )
 
     const handleModalState = state => {
       isModalOpen.value = state
@@ -52,13 +145,13 @@ export default {
       isSidebarOpen.value = !isSidebarOpen.value
     }
 
-    // Provide die reloadGallery Funktion
     provide('reloadGallery', () => {
-      console.log('Reload gallery triggered from App.vue')
-      if (galerieRef.value && galerieRef.value.loadCardSets) {
+      if (galerieRef.value?.loadCardSets) {
         galerieRef.value.loadCardSets()
       }
     })
+
+    provide('isAuthenticated', isAuthenticated)
 
     return {
       isSidebarOpen,
@@ -66,11 +159,14 @@ export default {
       galerieRef,
       isModalOpen,
       handleModalState,
+      isAuthenticated,
+      handleLogout,
+      showGalerie,
+      handleLoginSuccess,
     }
   },
 }
 </script>
-
 <style>
 html,
 body {
