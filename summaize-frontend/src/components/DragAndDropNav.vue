@@ -1,7 +1,7 @@
 <template>
-  <div class="mt-3">
+  <div class="d-flex justify-content-end gap-2">
     <button
-      class="btn btn-secondary me-2"
+      class="btn btn-outline-secondary"
       @click="$emit('clear-input')"
       :disabled="!fileSelected"
     >
@@ -19,6 +19,7 @@
 
 <script>
 export default {
+  name: 'DragAndDropNav',
   props: {
     fileSelected: {
       type: Boolean,

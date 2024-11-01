@@ -58,9 +58,7 @@ export default {
         const response = await fetch(
           `/api/users/${userId}/card-sets/${setId}`,
           {
-            headers: {
-              // Falls benötigt, können hier zusätzliche Header hinzugefügt werden
-            },
+            headers: {},
           },
         )
 

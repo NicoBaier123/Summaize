@@ -1,21 +1,23 @@
 <template>
   <div>
     <div
-      class="drag-and-drop border border-3 border-dashed p-5 text-center bg-light rounded shadow-sm"
+      class="drag-and-drop p-5 text-center"
       @dragover.prevent="onDragOver"
       @drop.prevent="onDrop"
       @click="triggerFileInput"
     >
       <template v-if="!selectedFile">
-        <i class="bi bi-file-earmark-pdf fs-1 mb-3"></i>
-        <p class="mb-0">
+        <i class="bi bi-file-earmark-pdf display-3 mb-3 text-secondary"></i>
+        <p class="mb-0 text-secondary">
           Ziehe deine PDF-Datei hierher oder klicke, um eine Datei auszuwählen.
         </p>
       </template>
       <template v-else>
-        <i class="bi bi-file-earmark-pdf fs-1 mb-3 text-primary"></i>
-        <h4 class="mb-0">{{ selectedFile.name }}</h4>
-        <p class="text-muted mt-2">Klicke, um eine andere Datei auszuwählen</p>
+        <i class="bi bi-file-earmark-pdf display-3 mb-3 text-primary"></i>
+        <h4 class="mb-2 text-primary">{{ selectedFile.name }}</h4>
+        <p class="text-muted small mb-0">
+          Klicke, um eine andere Datei auszuwählen
+        </p>
       </template>
       <input
         type="file"
@@ -29,6 +31,7 @@
       @clear-input="clearInput"
       @start-analysis="startAnalysis"
       :file-selected="!!selectedFile"
+      class="p-4"
     />
   </div>
 </template>
@@ -77,19 +80,8 @@ export default {
     },
     startAnalysis() {
       if (this.selectedFile) {
-        // Hier den Code zum Senden der Datei an das Backend einfügen
         const formData = new FormData()
         formData.append('pdf', this.selectedFile)
-
-        // Beispiel für einen API-Aufruf mit axios:
-        // axios.post('/api/analyze-pdf', formData)
-        //   .then(response => {
-        //     console.log('Analyse gestartet', response);
-        //   })
-        //   .catch(error => {
-        //     console.error('Fehler beim Starten der Analyse', error);
-        //   });
-
         console.log('Analyse gestartet für:', this.selectedFile.name)
       } else {
         alert('Bitte zuerst eine PDF-Datei auswählen.')
@@ -101,15 +93,28 @@ export default {
 
 <style scoped>
 .drag-and-drop {
-  transition: all 0.3s ease;
-  min-height: 200px; /* Ensures consistent height */
+  transition: all 0.2s ease;
+  min-height: 240px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  border: 2px dashed #dee2e6;
+  border-radius: 8px;
+  background-color: #f8f9fa;
 }
+
 .drag-and-drop:hover {
-  background-color: #e9ecef !important;
+  background-color: #e9ecef;
+  border-color: #adb5bd;
   cursor: pointer;
+}
+
+.bi-file-earmark-pdf {
+  transition: transform 0.2s ease;
+}
+
+.drag-and-drop:hover .bi-file-earmark-pdf {
+  transform: scale(1.1);
 }
 </style>

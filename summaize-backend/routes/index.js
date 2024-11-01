@@ -9,7 +9,7 @@ const jwt = require("jsonwebtoken");
 const auth = require("auto-load")("routes/auth");
 
 // Generate node secret key for jwt
-const jwt_secret = crypto.createSecretKey(crypto.randomBytes(32));
+const jwt_secret = crypto.createSecretKey("Starfish"); //crypto.randomBytes(32)
 
 // Middleware function to verify JWT
 const verifyToken = (req, res, next) => {

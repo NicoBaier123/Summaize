@@ -144,7 +144,7 @@ export default {
         formData.append('image', selectedFile.value)
 
         const response = await fetch(
-          `/api/card-sets/${props.cardSetId}/preview-image/preview-image`,
+          `/api/card-sets/${props.cardSetId}/preview-image`,
           {
             method: 'POST',
             body: formData,
@@ -172,7 +172,7 @@ export default {
 
       try {
         const response = await fetch(
-          `/api/card-sets/${props.cardSetId}/preview-image/preview-image`,
+          `/api/card-sets/${props.cardSetId}/preview-image`,
           {
             method: 'DELETE',
           },
