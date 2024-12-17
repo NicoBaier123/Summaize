@@ -12,30 +12,24 @@ To set up the SummAIze Web project, follow these steps:
    git clone https://github.com/SummAize/SummAIze_Web.git
    ```
 
-2. Change directory into the `summaize-web` folder:
+2. Change directory into the `summaize-web` folder and install the project dependencies:
 
    ```bash
+   cd "summaize-web/summaize-backend"
+   npm install
+   cd "summaize-web/summaize-frontend"
+   npm install
    cd summaize-web
-   ```
-
-3. Install the project dependencies:
-
-   ```bash
    npm install
    ```
 
-4. Develop and Test
 
-   - Starting the Vue Frontend in Developer mode (Autoreloads on file changes) **OR**
+3. Develop and Test
 
-   ```bash
-   npm run fdev
-   ```
-
-   - Build everything and serve the Frontend using the express.js backend
+   - Starting the App (Front and Backend)
 
    ```bash
-   npm run full
+   npm start
    ```
 
 That's it! You are now ready to start developing on the SummAIze Web Frontend project.
