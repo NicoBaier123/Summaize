@@ -1,18 +1,18 @@
-# Summ<span style="color: #00ffff;">AI</span>ze - Web Frontend and Backend
+# Summ<span style="color: #00ffff;">AI</span>ze - Web Frontend und Backend
 
-Please use Node v22
+Bitte verwende Node v22.
 
-## Developer set up
+## Entwickler-Setup
 
-To set up the SummAIze Web project, follow these steps:
+Um das SummAIze Web-Projekt einzurichten, folge diesen Schritten:
 
-1. Clone the repository:
+1. Klone das Repository:
 
    ```bash
    git clone https://github.com/SummAize/SummAIze_Web.git
    ```
 
-2. Change directory into the `summaize-web` folder and install the project dependencies:
+2. Wechsel in das `summaize-web` Verzeichnis und installiere die Projekt-Abhängigkeiten:
 
    ```bash
    cd "summaize-web/summaize-backend"
@@ -23,16 +23,15 @@ To set up the SummAIze Web project, follow these steps:
    npm install
    ```
 
+3. Entwickeln und Testen
 
-3. Develop and Test
-
-   - Starting the App (Front and Backend)
+   - Starte die App (Frontend und Backend):
 
    ```bash
    npm start
    ```
 
-That's it! You are now ready to start developing on the SummAIze Web Frontend project.
+Das war's! Du bist jetzt bereit, mit der Entwicklung des SummAIze Web Frontend-Projekts zu beginnen.
 
 ---------------
 ## Branch-Namenskonvention
