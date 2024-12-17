@@ -45,7 +45,7 @@ That's it! You are now ready to start developing on the SummAIze Web Frontend pr
 
 Für eine klare und strukturierte Arbeit im Team verwenden wir folgende Branch-Namenskonventionen:
 
-1. **`main`**:  
+* **`main`**:  
    Der stabile, produktive Code. Dieser Branch sollte nur den neuesten **fertigen** und **geprüften** Code enthalten.
 
 2. **`develop`**:  
