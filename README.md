@@ -9,7 +9,7 @@ To set up the SummAIze Web project, follow these steps:
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/okh-mzny/summaize-web.git
+   git clone https://github.com/SummAize/SummAIze_Web.git
    ```
 
 2. Change directory into the `summaize-web` folder:
