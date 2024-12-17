@@ -48,17 +48,17 @@ Für eine klare und strukturierte Arbeit im Team verwenden wir folgende Branch-N
 * **`main`**:  
    Der stabile, produktive Code. Dieser Branch sollte nur den neuesten **fertigen** und **geprüften** Code enthalten.
 
-2. **`develop`**:  
+* **`develop`**:  
    Der Entwicklungs-Branch, in dem neue Features und Bugfixes zusammengeführt werden, bevor sie in `main` gemerged werden.
 
-3. **`feature/<name>`**:  
+* **`feature/<name>`**:  
    Branches für die Entwicklung neuer Funktionen.  
    **Beispiel**: `feature/login-page`, `feature/user-profile`.
 
-4. **`bugfix/<name>`**:  
+* **`bugfix/<name>`**:  
    Branches für die Behebung von Fehlern oder Bugs.  
    **Beispiel**: `bugfix/login-error`, `bugfix/navbar-crash`.
 
-5. **`task/<name>`**:  
+* **`task/<name>`**:  
    Branches für allgemeine Aufgaben wie Refactoring, Dokumentation oder kleinere Verbesserungen.  
    **Beispiel**: `task/refactor-authentication`, `task/update-readme`.
